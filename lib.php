@@ -2,33 +2,22 @@
 
 function socket_write_big($socket, $st)
 {
-
     $length = strlen($st);
-        
     while (true) {
-        
         $sent = socket_write($socket, $st, $length);
-            
         if ($sent === false) {
-        
             break;
         }
-            
         // Check if the entire message has been sented
         if ($sent < $length) {
-                
             // If not sent the entire message.
             // Get the part of the message that has not yet been sented as message
             $st = substr($st, $sent);
-                
             // Get the length of the not sented part
             $length -= $sent;
-
         } else {
-            
             break;
         }
-            
     }
     return true;
 }
@@ -43,6 +32,10 @@ function save_file($socket, $filename, $len)
     echo "Read client data \n";
     //socket_read函数会一直读取客户端数据,直到遇见\n,\t或者\0字符.PHP脚本把这写字符看做是输入的结束符.  
     $buf = socket_read($socket, $len);
+    while (strlen($buf) != $len) {
+        $len -= strlen($buf);
+        $buf = socket_read($socket, $len);
+    }
     echo "Received msg: $buf   \n";
 
     echo "save file $filename\n";
@@ -76,13 +69,14 @@ function send_relet_file($socket, $root, $filename)
         'filename' => $relat_path,
         'size' => $size,
     );
+    var_dump($ctrl);
     $json = json_encode($ctrl);
     $len = strlen($json);
     echo "length of control message $len\n";
     $len = pack('i', $len);
     socket_write($socket, $len) or die("Write failed in ".__FUNCTION__."():".__LINE__."\n"); // 数据传送 向服务器发送消息  
     socket_write($socket, ($json)) or die("Write failed in ".__FUNCTION__."():".__LINE__."\n"); // 数据传送 向服务器发送消息
-    if ($size !== socket_write($socket, $content)) {
+    if (true !== socket_write_big($socket, $content)) {
         echo ("Write failed in ".__FUNCTION__."():".__LINE__."\n");
     }
 }
@@ -109,10 +103,20 @@ function save_relet_file($socket, $root)
         return false;
     }
     $len = unpack('i', $len);
+    var_dump($len);
     $len = $len[1];
     echo "length of control message $len\n";
+    if ($len > 10000) {
+        echo "length too long, stop\n";
+        exit;
+    }
     $json = socket_read($socket, $len);
     $ctrl = json_decode($json);
+    if (empty($ctrl)) {
+        var_dump($json);
+        echo "ctrl obj emtpy\n";
+        exit();
+    }
     print_r($ctrl);
     if ($ctrl->cmd == 'end') {
         echo "recieve end\n";
