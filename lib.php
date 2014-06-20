@@ -68,14 +68,14 @@ function send_relet_file($socket, $relat_path)
     return send_file($socket, $filename);
 }
 
-function save_relet_file($socket, $filename)
+function save_relet_file($socket, $root)
 {
     echo "Read client data \n";
-    $len = socket_read($msgsock, 4);
+    $len = socket_read($socket, 4);
     $len = unpack('i', $len);
     $len = $len[1];
     echo "length of control message $len\n";
-    $json = socket_read($msgsock, $len);
+    $json = socket_read($socket, $len);
     $ctrl = json_decode($json);
     print_r($ctrl);
     $filename = "$root/$ctrl->filename";
@@ -90,5 +90,5 @@ function save_relet_file($socket, $filename)
         mkdir($dirname, 0777, true);
     }
 
-    return save_file($msgsock, $filename);
+    return save_file($socket, $filename);
 }
