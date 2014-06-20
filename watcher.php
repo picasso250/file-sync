@@ -4,9 +4,9 @@ require 'lib.php';
 
 set_time_limit(0);
   
-$host = "127.0.0.1";  
+$host = "";  
 $port = 8081;
-$root = __DIR__.'/client';
+$root = 'D:\gxt-web-ui/protected/model';
 
 $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)or die("Could not create  socket\n"); // 创建一个Socket
 
@@ -22,7 +22,7 @@ while (!empty($queue)) {
     $d = opendir($root_dir);
 
     while (($f = readdir($d)) !== false) {
-        if ($f == '.' || $f == '..' || $f == '.git' || $f == '.svn') {
+        if (in_array($f, array('.', '..', '.git', '.svn', '.idea'))) {
             continue;
         }
         $filename = "$root_dir/$f";
