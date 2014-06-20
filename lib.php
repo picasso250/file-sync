@@ -54,3 +54,41 @@ function send_file($socket, $filename)
     echo "send file $filename\n";
     socket_write($socket, file_get_contents($filename)) or die("Write failed\n"); // 数据传送 向服务器发送消息
 }
+
+function send_relet_file($socket, $relat_path)
+{
+    $filename = "$root/$relat_path";
+    $ctrl = array('filename' => $relat_path);
+    $json = json_encode($ctrl);
+    $len = strlen($json);
+    echo "length of control message $len\n";
+    $len = pack('i', $len);
+    socket_write($socket, $len) or die("Write failed\n"); // 数据传送 向服务器发送消息  
+    socket_write($socket, ($json)) or die("Write failed\n"); // 数据传送 向服务器发送消息  
+    return send_file($socket, $filename);
+}
+
+function save_relet_file($socket, $filename)
+{
+    echo "Read client data \n";
+    $len = socket_read($msgsock, 4);
+    $len = unpack('i', $len);
+    $len = $len[1];
+    echo "length of control message $len\n";
+    $json = socket_read($msgsock, $len);
+    $ctrl = json_decode($json);
+    print_r($ctrl);
+    $filename = "$root/$ctrl->filename";
+
+    $dirname = dirname($filename);
+    if (is_file($dirname)) {
+        echo 'Error: ', $filename, ' is not dir', "\n";
+        exit;
+    }
+    if (!is_dir($dirname)) {
+        echo 'mkdir ', $dirname, "\n";
+        mkdir($dirname, 0777, true);
+    }
+
+    return save_file($msgsock, $filename);
+}
