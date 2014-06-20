@@ -53,7 +53,7 @@ function send_file($socket, $filename)
 {
     echo "send file $filename\n";
     $content = file_get_contents($filename);
-    socket_write($socket, $content) or die("Write failed\n"); // 数据传送 向服务器发送消息
+    socket_write($socket, $content) or die("Write failed in ".__FUNCTION__."():".__LINE__."\n"); // 数据传送 向服务器发送消息
 }
 
 function send_relet_file($socket, $root, $filename)
@@ -66,18 +66,25 @@ function send_relet_file($socket, $root, $filename)
     echo "relat_path $relat_path\n";
     echo "send file $filename\n";
     $content = file_get_contents($filename);
+    $size = strlen($content);
+    if ($size == 0) {
+        var_dump($content);
+        echo "emtpy file\n";
+    }
     $ctrl = array(
         'cmd' => 'send file',
         'filename' => $relat_path,
-        'size' => strlen($content),
+        'size' => $size,
     );
     $json = json_encode($ctrl);
     $len = strlen($json);
     echo "length of control message $len\n";
     $len = pack('i', $len);
-    socket_write($socket, $len) or die("Write failed\n"); // 数据传送 向服务器发送消息  
-    socket_write($socket, ($json)) or die("Write failed\n"); // 数据传送 向服务器发送消息  
-    socket_write($socket, $content) or die("Write failed\n"); // 数据传送 向服务器发送消息
+    socket_write($socket, $len) or die("Write failed in ".__FUNCTION__."():".__LINE__."\n"); // 数据传送 向服务器发送消息  
+    socket_write($socket, ($json)) or die("Write failed in ".__FUNCTION__."():".__LINE__."\n"); // 数据传送 向服务器发送消息
+    if ($size !== socket_write($socket, $content)) {
+        echo ("Write failed in ".__FUNCTION__."():".__LINE__."\n");
+    }
 }
 
 function send_end($socket)
