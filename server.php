@@ -1,5 +1,7 @@
 <?php
-  
+
+require 'lib.php';
+
 //确保在连接客户端时不会超时  
 set_time_limit(0);  
 //设置IP和端口号  
@@ -26,14 +28,16 @@ do { // never stop the daemon
     $msgsock = socket_accept($sock) or  die("socket_accept() failed: reason: " . socket_strerror(socket_last_error()) . "/n");  
       
     //读取客户端数据  
-    echo "Read client data \n";  
-    //socket_read函数会一直读取客户端数据,直到遇见\n,\t或者\0字符.PHP脚本把这写字符看做是输入的结束符.  
-    $buf = socket_read($msgsock, 8192);  
-    echo "Received msg: $buf   \n";
+    echo "Read client data \n";
+    $len = socket_read($msgsock, 4);
+    $len = unpack('i', $len);
+    $json = socket_read($msgsock, $len);
+    $ctrl = json_decode($json);
+    print_r($ctrl);
+    $filename = "$root/$ctrl->filename";
 
-    $filename = "$root/text.txt";
-    file_put_contents($filename, $buf);
-      
+    save_file($msgsock, $filename);
+
     //数据传送 向客户端写入返回结果
     $json = json_encode(array('code' => 0, 'msg' => 'OK'));
     socket_write($msgsock, $json, strlen($json)) or die("socket_write() failed: reason: " . socket_strerror(socket_last_error()) ."/n");  

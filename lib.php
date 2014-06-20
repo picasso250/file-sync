@@ -47,3 +47,8 @@ function save_file($socket, $filename)
 
     file_put_contents($filename, $buf);
 }
+
+function send_file($socket, $filename)
+{
+    socket_write($socket, file_get_contents($filename)) or die("Write failed\n"); // 数据传送 向服务器发送消息
+}
