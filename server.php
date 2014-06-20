@@ -28,27 +28,9 @@ do { // never stop the daemon
     $msgsock = socket_accept($sock) or  die("socket_accept() failed: reason: " . socket_strerror(socket_last_error()) . "/n");  
       
     //读取客户端数据  
-    echo "Read client data \n";
-    $len = socket_read($msgsock, 4);
-    $len = unpack('i', $len);
-    $len = $len[1];
-    var_dump($len);
-    echo "length of control message $len\n";
-    $json = socket_read($msgsock, $len);
-    $ctrl = json_decode($json);
-    print_r($ctrl);
-    $filename = "$root/$ctrl->filename";
-
-    $dirname = dirname($filename);
-    if (is_file($dirname)) {
-        echo 'Error: ', $filename, ' is not dir', "\n";
-        exit;
+    while (save_relet_file($msgsock, $root) !== -1) {
+        echo "ok\n";
     }
-    if (!is_dir($filename)) {
-        mkdir($dirname, 0777, true);
-    }
-
-    save_file($msgsock, $filename);
 
     //数据传送 向客户端写入返回结果
     $json = json_encode(array('code' => 0, 'msg' => 'OK'));

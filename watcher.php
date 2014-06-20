@@ -12,19 +12,33 @@ $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)or die("Could not create  
 
 $connection = socket_connect($socket, $host, $port) or die("Could not connet server\n");    //  连接  
 
-$filepath = "a/z.txt";
-$filename = "$root/$filepath";
-$ctrl = array('filename' => $filepath);
-$json = json_encode($ctrl);
-$len = strlen($json);
-echo "length of control message $len\n";
-$len = pack('i', $len);
-var_dump($len);
-socket_write($socket, $len) or die("Write failed\n"); // 数据传送 向服务器发送消息  
-socket_write($socket, ($json)) or die("Write failed\n"); // 数据传送 向服务器发送消息  
-send_file($socket, $filename);
+$queue = array($root);
+
+while (!empty($queue)) {
+    echo "queue\n";
+    var_dump($queue);
+    $root_dir = array_shift($queue);
+    echo "enter dir $root_dir\n";
+    $d = opendir($root_dir);
+
+    while (($f = readdir($d)) !== false) {
+        if ($f == '.' || $f == '..' || $f == '.git' || $f == '.svn') {
+            continue;
+        }
+        $filename = "$root_dir/$f";
+        if (is_file($filename)) {
+            echo "send file $filename\n";
+            send_relet_file($socket, $root, $filename);
+        } elseif (is_dir($filename)) {
+            echo "add to queue $filename\n";
+            $queue[] = "$filename";
+        }
+    }
+}
+send_end($socket);
+echo "ok\n";
 
 while ($buff = socket_read($socket, 1024)) {  
     echo("Response was:" . $buff . "\n");
-}  
+}
 socket_close($socket);
