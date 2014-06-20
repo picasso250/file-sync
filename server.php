@@ -6,7 +6,7 @@ require 'lib.php';
 set_time_limit(0);  
 //设置IP和端口号  
 $address = "127.0.0.1";  
-$port = 2048; //调试的时候，可以多换端口来测试程序！  
+$port = 8081; //调试的时候，可以多换端口来测试程序！  
 $root = __DIR__.'/server';
 
 /** 

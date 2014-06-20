@@ -5,7 +5,7 @@ require 'lib.php';
 set_time_limit(0);
   
 $host = "127.0.0.1";  
-$port = 2048;
+$port = 8081;
 $root = __DIR__.'/client';
 
 $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)or die("Could not create  socket\n"); // 创建一个Socket
