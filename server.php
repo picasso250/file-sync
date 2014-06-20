@@ -31,10 +31,22 @@ do { // never stop the daemon
     echo "Read client data \n";
     $len = socket_read($msgsock, 4);
     $len = unpack('i', $len);
+    $len = $len[1];
+    var_dump($len);
+    echo "length of control message $len\n";
     $json = socket_read($msgsock, $len);
     $ctrl = json_decode($json);
     print_r($ctrl);
     $filename = "$root/$ctrl->filename";
+
+    $dirname = dirname($filename);
+    if (is_file($dirname)) {
+        echo 'Error: ', $filename, ' is not dir', "\n";
+        exit;
+    }
+    if (!is_dir($filename)) {
+        mkdir($dirname, 0777, true);
+    }
 
     save_file($msgsock, $filename);
 
@@ -44,4 +56,4 @@ do { // never stop the daemon
     //一旦输出被返回到客户端,父/子socket都应通过socket_close($msgsock)函数来终止  
     socket_close($msgsock);  
 } while (true);  
-socket_close($sock);  
+socket_close($sock);

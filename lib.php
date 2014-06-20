@@ -45,10 +45,12 @@ function save_file($socket, $filename)
     $buf = socket_read($socket, 8192);  
     echo "Received msg: $buf   \n";
 
+    echo "save file $filename\n";
     file_put_contents($filename, $buf);
 }
 
 function send_file($socket, $filename)
 {
+    echo "send file $filename\n";
     socket_write($socket, file_get_contents($filename)) or die("Write failed\n"); // 数据传送 向服务器发送消息
 }
