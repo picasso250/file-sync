@@ -3,10 +3,10 @@
 function get_config()
 {
     $config = file_get_contents('config.default.json');
-    $config = json_decode($config);
+    $config = json_decode($config, true);
     $f = 'config.user.json';
     if (is_file($f)) {
-        $config_user = json_decode(file_get_contents($f));
+        $config_user = json_decode(file_get_contents($f), true);
         $config = array_merge($config, $config_user);
     }
     return $config;
@@ -40,18 +40,21 @@ function socket_write_big($socket, $st)
  */
 function save_file($socket, $filename, $len)
 {
+    $f = fopen($filename, 'w');
     //读取客户端数据  
     echo "Read client data \n";
     //socket_read函数会一直读取客户端数据,直到遇见\n,\t或者\0字符.PHP脚本把这写字符看做是输入的结束符.  
     $buf = socket_read($socket, $len);
+    fwrite($f, $buf);
     while (strlen($buf) != $len) {
         $len -= strlen($buf);
         $buf = socket_read($socket, $len);
+        fwrite($f, $buf);
+        echo "write: $buf   \n";
     }
-    echo "Received msg: $buf   \n";
-
     echo "save file $filename\n";
-    return file_put_contents($filename, $buf);
+
+    return;
 }
 
 function send_file($socket, $filename)
@@ -146,7 +149,7 @@ function save_relet_file($socket, $root)
         mkdir($dirname, 0777, true);
     }
 
-    socket_write($socket, 'recieve a file '.$filename);
+    socket_write($socket, 'recieve a file '.$filename."\n");
 
     return save_file($socket, $filename, $ctrl->size);
 }
