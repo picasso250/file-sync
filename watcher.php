@@ -3,10 +3,12 @@
 require 'lib.php';
 
 set_time_limit(0);
-  
-$host = "";  
-$port = 8081;
-$root = 'D:\gxt-web-ui/protected/model';
+
+$config = get_config();
+
+$host = $config['host'];
+$port = $config['port'];
+$root = $config['root_client'];
 
 $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)or die("Could not create  socket\n"); // 创建一个Socket
 

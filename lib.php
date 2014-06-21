@@ -1,5 +1,17 @@
 <?php
 
+function get_config()
+{
+    $config = file_get_contents('config.default.json');
+    $config = json_decode($config);
+    $f = 'config.user.json';
+    if (is_file($f)) {
+        $config_user = json_decode(file_get_contents($f));
+        $config = array_merge($config, $config_user);
+    }
+    return $config;
+}
+
 function socket_write_big($socket, $st)
 {
     $length = strlen($st);
