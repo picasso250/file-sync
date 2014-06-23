@@ -46,7 +46,7 @@ function save_file($socket, $filename, $len)
     //socket_read函数会一直读取客户端数据,直到遇见\n,\t或者\0字符.PHP脚本把这写字符看做是输入的结束符.  
     $buf = socket_read($socket, $len);
     fwrite($f, $buf);
-    while (strlen($buf) != $len) {
+    while (strlen($buf) != $len && $len > 0) {
         $len -= strlen($buf);
         $buf = socket_read($socket, $len);
         fwrite($f, $buf);
@@ -74,6 +74,8 @@ function send_relet_file($socket, $root, $filename)
     echo "relat_path $relat_path\n";
     echo "send file $filename\n";
     $content = file_get_contents($filename);
+    $content = mb_convert_encoding($content, 'UTF-8');
+    echo "$content\n";
     $size = strlen($content);
     if ($size == 0) {
         var_dump($content);
@@ -89,8 +91,10 @@ function send_relet_file($socket, $root, $filename)
     $len = strlen($json);
     echo "length of control message $len\n";
     $len = pack('i', $len);
-    socket_write($socket, $len) or die("Write failed in ".__FUNCTION__."():".__LINE__."\n"); // 数据传送 向服务器发送消息  
-    socket_write($socket, ($json)) or die("Write failed in ".__FUNCTION__."():".__LINE__."\n"); // 数据传送 向服务器发送消息
+    socket_write($socket, $len) or die("Write failed in ".__FUNCTION__."():".__LINE__."\n"); // 数据传送 向服务器发送消息
+    if (true !== socket_write_big($socket, $json)) {
+        echo ("Write failed in ".__FUNCTION__."():".__LINE__."\n");
+    }
     if (true !== socket_write_big($socket, $content)) {
         echo ("Write failed in ".__FUNCTION__."():".__LINE__."\n");
     }
@@ -126,6 +130,11 @@ function save_relet_file($socket, $root)
         exit;
     }
     $json = socket_read($socket, $len);
+    while (strlen($json) != $len && $len > 0) {
+        echo "read more\n";
+        $len -= strlen($json);
+        $json .= socket_read($socket, $len);
+    }
     $ctrl = json_decode($json);
     if (empty($ctrl)) {
         var_dump($json);
