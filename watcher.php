@@ -33,8 +33,6 @@ while (!empty($queue)) {
         if (is_file($filename)) {
             if (!isset($modify_table[$filename])) {
                 $modify_table[$filename] = filemtime($filename);
-                echo "send file $filename\n";
-                send_relet_file($socket, $root, $filename);
             } else {
                 $filemtime = filemtime($filename);
                 if ($modify_table[$filename] != $filemtime) {

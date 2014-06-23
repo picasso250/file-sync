@@ -12,6 +12,20 @@ function get_config()
     return $config;
 }
 
+function socket_read_enough($socket, $len)
+{
+    if (!$len) {
+        return '';
+    }
+    $ret = socket_read($socket, $len);
+    while (strlen($ret) != $len && $len > 0) {
+        echo "read more\n";
+        $len -= strlen($ret);
+        $ret .= socket_read($socket, $len);
+    }
+    return $ret;
+}
+
 function socket_write_big($socket, $st)
 {
     $length = strlen($st);
@@ -64,6 +78,11 @@ function send_file($socket, $filename)
     socket_write($socket, $content) or die("Write failed in ".__FUNCTION__."():".__LINE__."\n"); // 数据传送 向服务器发送消息
 }
 
+function is_text_file($filename)
+{
+    return !preg_match('/\.png$|\.jpg|\.gif$|\.eot$|\.woff$|\.ttf$/i', $filename);
+}
+
 function send_relet_file($socket, $root, $filename)
 {
     if (strpos($filename, $root) !== 0) {
@@ -74,7 +93,9 @@ function send_relet_file($socket, $root, $filename)
     echo "relat_path $relat_path\n";
     echo "send file $filename\n";
     $content = file_get_contents($filename);
-    $content = str_replace(PHP_EOL, "\n", $content);
+    if (is_text_file($filename)) {
+        $content = str_replace(PHP_EOL, "\n", $content);
+    }
     // $content = mb_convert_encoding($content, 'UTF-8');
     // echo "$content\n";
     $size = strlen($content);
@@ -118,7 +139,7 @@ function send_end($socket)
 function save_relet_file($socket, $root)
 {
     echo "Read client data \n";
-    $len = socket_read($socket, 4);
+    $len = socket_read_enough($socket, 4);
     if (empty($len) || strlen($len) == 0) {
         return false;
     }
@@ -130,12 +151,7 @@ function save_relet_file($socket, $root)
         echo "length too long, stop\n";
         exit;
     }
-    $json = socket_read($socket, $len);
-    while (strlen($json) != $len && $len > 0) {
-        echo "read more\n";
-        $len -= strlen($json);
-        $json .= socket_read($socket, $len);
-    }
+    $json = socket_read_enough($socket, $len);
     $ctrl = json_decode($json);
     if (empty($ctrl)) {
         var_dump($json);
