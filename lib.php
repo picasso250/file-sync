@@ -50,7 +50,7 @@ function save_file($socket, $filename, $len)
         $len -= strlen($buf);
         $buf = socket_read($socket, $len);
         fwrite($f, $buf);
-        echo "write: $buf   \n";
+        // echo "write: $buf   \n";
     }
     echo "save file $filename\n";
 
@@ -74,8 +74,9 @@ function send_relet_file($socket, $root, $filename)
     echo "relat_path $relat_path\n";
     echo "send file $filename\n";
     $content = file_get_contents($filename);
-    $content = mb_convert_encoding($content, 'UTF-8');
-    echo "$content\n";
+    $content = str_replace(PHP_EOL, "\n", $content);
+    // $content = mb_convert_encoding($content, 'UTF-8');
+    // echo "$content\n";
     $size = strlen($content);
     if ($size == 0) {
         var_dump($content);
