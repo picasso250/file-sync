@@ -7,7 +7,9 @@ function get_config()
     $f = 'config.user.json';
     if (is_file($f)) {
         $config_user = json_decode(file_get_contents($f), true);
+        $ignore = array_merge($config['ignore'], $config_user['ignore']);
         $config = array_merge($config, $config_user);
+        $config['ignore'] = $ignore;
     }
     return $config;
 }

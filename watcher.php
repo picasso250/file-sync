@@ -18,6 +18,7 @@ $connection = socket_connect($socket, $host, $port) or die("Could not connet ser
 
 $modify_table = load_modify_time();
 $queue = array($root);
+$ignore = $config['ignore'];
 
 while (!empty($queue)) {
     // echo "queue\n"; var_dump($queue);
@@ -26,7 +27,11 @@ while (!empty($queue)) {
     $d = opendir($root_dir);
 
     while (($f = readdir($d)) !== false) {
-        if (in_array($f, array('.', '..', '.git', '.svn', '.idea'))) {
+        if ($f == '.' || $f == '..') {
+            continue;
+        }
+        if (in_array($f, $ignore)) {
+            echo "skip $f\n";
             continue;
         }
         $filename = "$root_dir/$f";
