@@ -11,7 +11,6 @@ $port = $config['port'];
 $root = $config['root_client'];
 
 echo "on $root\n";
-echo "Connect to $host:$port ... \n";
 
 $ignore = $config['ignore'];
 
