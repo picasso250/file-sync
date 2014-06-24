@@ -16,7 +16,7 @@ $root = $config['root_server'];
  * 创建一个SOCKET  
  * AF_INET=是ipv4 如果用ipv6，则参数为 AF_INET6 
  * SOCK_STREAM为socket的tcp类型，如果是UDP则使用SOCK_DGRAM 
-*/  
+*/
 $sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP) or die("socket_create() 失败的原因是:" . socket_strerror(socket_last_error()) . "/n");  
 //阻塞模式  
 socket_set_block($sock) or die("socket_set_block() 失败的原因是:" . socket_strerror(socket_last_error()) . "/n");  

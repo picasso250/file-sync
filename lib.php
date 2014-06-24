@@ -19,7 +19,7 @@ function watch_dir($host, $port, $root, $ignore)
                 continue;
             }
             if (in_array($f, $ignore)) {
-                echo "skip $f\n";
+                // echo "skip $f\n";
                 continue;
             }
             $filename = "$root_dir/$f";
@@ -40,7 +40,7 @@ function watch_dir($host, $port, $root, $ignore)
                         send_relet_file($socket, $root, $filename);
                         $changed = true;
                     } else {
-                        echo ".";
+                        // echo ".";
                     }
                 }
             } elseif (is_dir($filename)) {

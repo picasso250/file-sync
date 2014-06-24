@@ -16,13 +16,6 @@ $ignore = $config['ignore'];
 $interval = 1;
 while (true) {
     $changed = watch_dir($host, $port, $root, $ignore);
-    if (!$changed) {
-        if ($interval < 10) {
-            $interval++;
-        }
-    } else {
-        $interval = 1;
-    }
     echo "sleep $interval s\n";
     sleep($interval);
 }
