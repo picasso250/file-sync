@@ -12,12 +12,12 @@ file-sync
 用法
 ------
 
-在服务器上打开 server.php 。在本地打开 watch.php 
+在服务器上打开 `server.php` 。在本地打开 `watcher.php` 
 
 配置
 -------
 
-config.default.json 使用json格式
+`config.default.json` 使用json格式
 
 ```json
 {
