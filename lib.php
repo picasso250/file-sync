@@ -3,6 +3,7 @@
 function watch_dir($host, $port, $root, $ignore)
 {
     $socket = null;
+    $changed = false;
 
     $modify_table = load_modify_time();
     $queue = array($root);
@@ -37,6 +38,7 @@ function watch_dir($host, $port, $root, $ignore)
                             $connection = socket_connect($socket, $host, $port) or die("Could not connet server\n");    //  连接
                         }
                         send_relet_file($socket, $root, $filename);
+                        $changed = true;
                     } else {
                         echo ".";
                     }
@@ -58,18 +60,28 @@ function watch_dir($host, $port, $root, $ignore)
 
         socket_close($socket);
     }
+    return $changed;
 }
 
 function get_config()
 {
-    $config = file_get_contents('config.default.json');
+    $config_file = __DIR__.'/config.default.json';
+    if (!is_file($config_file)) {
+        echo "$config_file not exists\n";
+        exit(1);
+    }
+    $config = file_get_contents($config_file);
     $config = json_decode($config, true);
-    $f = 'config.user.json';
+    $f = __DIR__.'/config.user.json';
     if (is_file($f)) {
         $config_user = json_decode(file_get_contents($f), true);
-        $ignore = array_merge($config['ignore'], $config_user['ignore']);
+        if (isset($config_user['ignore'])) {
+            $ignore = array_merge($config['ignore'], $config_user['ignore']);
+        }
         $config = array_merge($config, $config_user);
-        $config['ignore'] = $ignore;
+        if (isset($ignore)) {
+            $config['ignore'] = $ignore;
+        }
     }
     return $config;
 }
