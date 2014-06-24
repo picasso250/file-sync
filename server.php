@@ -26,7 +26,8 @@ $result = socket_bind($sock, $address, $port) or die("socket_bind() 失败的原
 $result = socket_listen($sock, 4) or die("socket_listen() 失败的原因是:" . socket_strerror(socket_last_error()) . "/n");  
 echo "on $root\n";
 echo "Binding the socket on $address:$port ... ";
-echo "OK\nNow ready to accept connections.\nListening on the socket ... \n";  
+echo "OK\nNow ready to accept connections.\nListening on the socket ... \n";
+
 do { // never stop the daemon  
     //它接收连接请求并调用一个子连接Socket来处理客户端和服务器间的信息  
     $msgsock = socket_accept($sock) or  die("socket_accept() failed: reason: " . socket_strerror(socket_last_error()) . "/n");  
@@ -41,5 +42,6 @@ do { // never stop the daemon
     socket_write($msgsock, $json, strlen($json)) or die("socket_write() failed: reason: " . socket_strerror(socket_last_error()) ."/n");  
     //一旦输出被返回到客户端,父/子socket都应通过socket_close($msgsock)函数来终止  
     socket_close($msgsock);  
-} while (true);  
+} while (true);
+
 socket_close($sock);

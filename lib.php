@@ -1,7 +1,9 @@
 <?php
 
-function watch_dir($socket, $root, $ignore)
+function watch_dir($host, $port, $root, $ignore)
 {
+    $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)or die("Could not create  socket\n"); // 创建一个Socket
+    $connection = socket_connect($socket, $host, $port) or die("Could not connet server\n");    //  连接
 
     $modify_table = load_modify_time();
     $queue = array($root);
@@ -48,6 +50,8 @@ function watch_dir($socket, $root, $ignore)
     while ($buff = socket_read($socket, 1024)) {  
         echo("Response was:" . $buff . "\n");
     }
+
+    socket_close($socket);
 }
 
 function get_config()
