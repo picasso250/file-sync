@@ -34,7 +34,7 @@ function watch_dir($host, $port, $root, $ignore)
                         echo "send file $filename\n";
                         if ($socket === null) {
                             echo "Connect to $host:$port ... \n";
-                            $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)or die("Could not create  socket\n"); // 创建一个Socket
+                            $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)or die("Could not create socket\n"); // 创建一个Socket
                             $connection = socket_connect($socket, $host, $port) or die("Could not connet server\n");    //  连接
                         }
                         send_relet_file($socket, $root, $filename);
