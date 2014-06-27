@@ -33,9 +33,7 @@ function watch_dir($host, $port, $root, $ignore)
                         echo "time diff $modify_table[$filename] $filemtime\n";
                         echo "send file $filename\n";
                         if ($socket === null) {
-                            echo "Connect to $host:$port ... \n";
-                            $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)or die("Could not create socket\n"); // 创建一个Socket
-                            $connection = socket_connect($socket, $host, $port) or die("Could not connet server\n");    //  连接
+                            $socket = open_socket($socket);
                         }
                         send_relet_file($socket, $root, $filename);
                         $changed = true;
@@ -53,14 +51,26 @@ function watch_dir($host, $port, $root, $ignore)
     save_modify_time($modify_table);
 
     if ($socket !== null) {
-        send_end($socket);
-        while ($buff = socket_read($socket, 1024)) {  
-            echo("Response was:" . $buff . "\n");
-        }
-
-        socket_close($socket);
+        end_socket($socket);
     }
     return $changed;
+}
+
+function open_socket($socket)
+{
+    echo "Connect to $host:$port ... \n";
+    $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)or die("Could not create socket\n"); // 创建一个Socket
+    $connection = socket_connect($socket, $host, $port) or die("Could not connet server\n");    //  连接
+    return $socket;
+}
+
+function end_socket($socket)
+{
+    send_end($socket);
+    while ($buff = socket_read($socket, 1024)) {  
+        echo("Response was:" . $buff . "\n");
+    }
+    socket_close($socket);
 }
 
 function get_config()
