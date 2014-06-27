@@ -17,7 +17,9 @@ file-sync
 
 `config.default.json` 使用json格式
 
-```json
+你也可以使用 `config.user.json` 文件，此文件中的配置会覆盖 `config.default.json`
+
+```
 {
     "host": "127.0.0.1", // 监听的IP
     "port": 5666,        // 端口
