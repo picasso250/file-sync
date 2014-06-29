@@ -33,7 +33,7 @@ function watch_dir($host, $port, $root, $ignore)
                         echo "time diff $modify_table[$filename] $filemtime\n";
                         echo "send file $filename\n";
                         if ($socket === null) {
-                            $socket = open_socket($socket);
+                            $socket = open_socket($socket, $host, $port);
                         }
                         send_relet_file($socket, $root, $filename);
                         $changed = true;
@@ -56,7 +56,7 @@ function watch_dir($host, $port, $root, $ignore)
     return $changed;
 }
 
-function open_socket($socket)
+function open_socket($socket, $host, $port)
 {
     echo "Connect to $host:$port ... \n";
     $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)or die("Could not create socket\n"); // 创建一个Socket
