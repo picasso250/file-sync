@@ -25,18 +25,12 @@ function watch_dir($host, $port, $root, $ignore)
             $filename = "$root_dir/$f";
             if (is_file($filename)) {
                 if (!isset($modify_table[$filename])) {
-                    $modify_table[$filename] = filemtime($filename);
+                    $filemtime = filemtime($filename);
+                    list($modify_table, $socket, $changed) = send_file_change($host, $port, $root, $filemtime, $modify_table, $filename, $socket);
                 } else {
                     $filemtime = filemtime($filename);
                     if ($modify_table[$filename] != $filemtime) {
-                        $modify_table[$filename] = $filemtime;
-                        echo "time diff $modify_table[$filename] $filemtime\n";
-                        echo "send file $filename\n";
-                        if ($socket === null) {
-                            $socket = open_socket($socket, $host, $port);
-                        }
-                        send_relet_file($socket, $root, $filename);
-                        $changed = true;
+                        list($modify_table, $socket, $changed) = send_file_change($host, $port, $root, $filemtime, $modify_table, $filename, $socket);
                     } else {
                         // echo ".";
                     }
@@ -54,6 +48,29 @@ function watch_dir($host, $port, $root, $ignore)
         end_socket($socket);
     }
     return $changed;
+}
+
+/**
+ * @param $host
+ * @param $port
+ * @param $root
+ * @param $filemtime
+ * @param $modify_table
+ * @param $filename
+ * @param $socket
+ * @return array
+ */
+function send_file_change($host, $port, $root, $filemtime, $modify_table, $filename, $socket)
+{
+    $modify_table[$filename] = $filemtime;
+    echo "time diff $modify_table[$filename] $filemtime\n";
+    echo "send file $filename\n";
+    if ($socket === null) {
+        $socket = open_socket($socket, $host, $port);
+    }
+    send_relet_file($socket, $root, $filename);
+    $changed = true;
+    return array($modify_table, $socket, $changed);
 }
 
 function open_socket($socket, $host, $port)
