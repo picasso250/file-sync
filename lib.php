@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * 监视文件夹
+ * @param $host string 服务器地址
+ * @param $port int 服务器端口
+ * @param $root string 要监视的目录
+ * @param $ignore array 忽略的文件
+ * @return bool 是否被改变
+ */
 function watch_dir($host, $port, $root, $ignore)
 {
     $socket = null;
@@ -41,7 +49,7 @@ function watch_dir($host, $port, $root, $ignore)
             }
         }
     }
-    echo "ok\n";
+    // echo "ok\n";
     save_modify_time($modify_table);
 
     if ($socket !== null) {
@@ -51,6 +59,7 @@ function watch_dir($host, $port, $root, $ignore)
 }
 
 /**
+ * 发送改变了的文件
  * @param $host
  * @param $port
  * @param $root
@@ -66,14 +75,20 @@ function send_file_change($host, $port, $root, $filemtime, $modify_table, $filen
     echo "time diff $modify_table[$filename] $filemtime\n";
     echo "send file $filename\n";
     if ($socket === null) {
-        $socket = open_socket($socket, $host, $port);
+        $socket = open_socket($host, $port);
     }
     send_relet_file($socket, $root, $filename);
     $changed = true;
     return array($modify_table, $socket, $changed);
 }
 
-function open_socket($socket, $host, $port)
+/**
+ * 打开和服务器端的连接
+ * @param $host
+ * @param $port
+ * @return resource
+ */
+function open_socket($host, $port)
 {
     echo "Connect to $host:$port ... \n";
     $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)or die("Could not create socket\n"); // 创建一个Socket
@@ -81,6 +96,10 @@ function open_socket($socket, $host, $port)
     return $socket;
 }
 
+/**
+ *
+ * @param $socket
+ */
 function end_socket($socket)
 {
     send_end($socket);
