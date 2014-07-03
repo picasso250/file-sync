@@ -6,7 +6,6 @@
  * Time: 下午1:27
  */
 
-
 /**
  * 是否是文本文件
  * @param $filename
@@ -14,6 +13,7 @@
  */
 function is_text_file($filename)
 {
+    // 现在是根据后缀名来判断。但这样恐怕多有不妥
     return !preg_match('/\.png$|\.jpg|\.gif$|\.eot$|\.woff$|\.ttf$/i', $filename);
 }
 
@@ -25,7 +25,7 @@ function load_modify_time()
 {
     $f = __DIR__.'/modify_time';
     if (is_file($f)) {
-        return json_decode(file_get_contents($f), true);
+        return json_decode(file_get_contents($f), true) ?: array();
     }
     return array();
 }
