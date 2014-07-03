@@ -41,12 +41,12 @@ function socket_write_enough($socket, $str)
         if ($sent === false) {
             return false;
         }
-        // Check if the entire message has been sented
+        // Check if the entire message has been send
         if ($sent < $length) {
             // If not sent the entire message.
-            // Get the part of the message that has not yet been sented as message
+            // Get the part of the message that has not yet been send as message
             $str = substr($str, $sent);
-            // Get the length of the not sented part
+            // Get the length of the not send part
             $length -= $sent;
         } else {
             break;
