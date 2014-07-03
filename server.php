@@ -1,6 +1,6 @@
 <?php
 
-require 'lib.php';
+require __DIR__.'/lib/lib.php';
 
 // 确保在连接客户端时不会超时
 set_time_limit(0);

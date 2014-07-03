@@ -27,7 +27,7 @@ function get_config()
     return $config;
 }
 
-include __DIR__.'/lib_file.php';
-include __DIR__.'/lib_socket.php';
-include __DIR__.'/lib_server.php';
-include __DIR__.'/lib_local.php';
+include __DIR__ . '/lib_file.php';
+include __DIR__ . '/lib_socket.php';
+include __DIR__ . '/lib_server.php';
+include __DIR__ . '/lib_local.php';

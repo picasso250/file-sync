@@ -3,7 +3,7 @@
  * 监视本地文件的改变，并将改变通知服务器
  */
 
-require 'lib.php';
+require __DIR__.'/lib/lib.php';
 
 set_time_limit(0);
 
