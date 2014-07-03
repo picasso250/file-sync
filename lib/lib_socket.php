@@ -30,22 +30,22 @@ function socket_read_enough($socket, $len)
 /**
  * 写入足够的字节
  * @param $socket
- * @param $st
+ * @param $str
  * @return bool
  */
-function socket_write_big($socket, $st)
+function socket_write_enough($socket, $str)
 {
-    $length = strlen($st);
+    $length = strlen($str);
     while (true) {
-        $sent = socket_write($socket, $st, $length);
+        $sent = socket_write($socket, $str, $length);
         if ($sent === false) {
-            break;
+            return false;
         }
         // Check if the entire message has been sented
         if ($sent < $length) {
             // If not sent the entire message.
             // Get the part of the message that has not yet been sented as message
-            $st = substr($st, $sent);
+            $str = substr($str, $sent);
             // Get the length of the not sented part
             $length -= $sent;
         } else {

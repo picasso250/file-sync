@@ -134,8 +134,8 @@ function send_end($socket)
     $len = strlen($json);
     echo "length of control message $len\n";
     $len = pack('i', $len);
-    socket_write($socket, $len) or die("Write failed\n"); // 数据传送 向服务器发送消息
-    socket_write($socket, ($json)) or die("Write failed\n"); // 数据传送 向服务器发送消息
+    socket_write_enough($socket, $len) or die("Write failed\n"); // 数据传送 向服务器发送消息
+    socket_write_enough($socket, $json) or die("Write failed\n"); // 数据传送 向服务器发送消息
 }
 
 
@@ -175,10 +175,10 @@ function send_relet_file($socket, $root, $filename)
     echo "length of control message $len\n";
     $len = pack('i', $len);
     socket_write($socket, $len) or die("Write failed in ".__FUNCTION__."():".__LINE__."\n"); // 数据传送 向服务器发送消息
-    if (true !== socket_write_big($socket, $json)) {
+    if (true !== socket_write_enough($socket, $json)) {
         echo ("Write failed in ".__FUNCTION__."():".__LINE__."\n");
     }
-    if (true !== socket_write_big($socket, $content)) {
+    if (true !== socket_write_enough($socket, $content)) {
         echo ("Write failed in ".__FUNCTION__."():".__LINE__."\n");
     }
 }
