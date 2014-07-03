@@ -106,7 +106,7 @@ function open_socket($host, $port)
 }
 
 /**
- *
+ * 结束连接
  * @param $socket
  */
 function end_socket($socket)
@@ -136,4 +136,49 @@ function send_end($socket)
     $len = pack('i', $len);
     socket_write($socket, $len) or die("Write failed\n"); // 数据传送 向服务器发送消息
     socket_write($socket, ($json)) or die("Write failed\n"); // 数据传送 向服务器发送消息
+}
+
+
+/**
+ * 发送文件
+ * @param $socket
+ * @param $root
+ * @param $filename
+ */
+function send_relet_file($socket, $root, $filename)
+{
+    if (strpos($filename, $root) !== 0) {
+        echo "Error: filename $filename, root $root not match\n";
+        return;
+    }
+    $relat_path = substr($filename, strlen($root)+1);
+    echo "relat_path $relat_path\n";
+    echo "send file $filename\n";
+    $content = file_get_contents($filename);
+    if (is_text_file($filename)) {
+        $content = str_replace(PHP_EOL, "\n", $content);
+    }
+    // echo "$content\n";
+    $size = strlen($content);
+    if ($size == 0) {
+        var_dump($content);
+        echo "emtpy file\n";
+    }
+    $ctrl = array(
+        'cmd' => 'send file',
+        'filename' => $relat_path,
+        'size' => $size,
+    );
+    // var_dump($ctrl);
+    $json = json_encode($ctrl);
+    $len = strlen($json);
+    echo "length of control message $len\n";
+    $len = pack('i', $len);
+    socket_write($socket, $len) or die("Write failed in ".__FUNCTION__."():".__LINE__."\n"); // 数据传送 向服务器发送消息
+    if (true !== socket_write_big($socket, $json)) {
+        echo ("Write failed in ".__FUNCTION__."():".__LINE__."\n");
+    }
+    if (true !== socket_write_big($socket, $content)) {
+        echo ("Write failed in ".__FUNCTION__."():".__LINE__."\n");
+    }
 }
