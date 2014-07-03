@@ -38,17 +38,7 @@ function watch_dir($host, $port, $root, $ignore)
             }
             $filename = "$root_dir/$f";
             if (is_file($filename)) {
-                if (!isset($modify_table[$filename])) {
-                    $filemtime = filemtime($filename);
-                    list($modify_table, $socket, $changed) = send_file_change($host, $port, $root, $filemtime, $modify_table, $filename, $socket);
-                } else {
-                    $filemtime = filemtime($filename);
-                    if ($modify_table[$filename] != $filemtime) {
-                        list($modify_table, $socket, $changed) = send_file_change($host, $port, $root, $filemtime, $modify_table, $filename, $socket);
-                    } else {
-                        // echo ".";
-                    }
-                }
+                list($modify_table, $socket, $changed) = process_file($host, $port, $root, $modify_table, $filename, $socket, $changed);
             } elseif (is_dir($filename)) {
                 // echo "add to queue $filename\n";
                 $queue[] = "$filename";
@@ -62,6 +52,33 @@ function watch_dir($host, $port, $root, $ignore)
         end_socket($socket);
     }
     return $changed;
+}
+
+/**
+ * 处理文件
+ * @param $host
+ * @param $port
+ * @param $root
+ * @param $modify_table
+ * @param $filename
+ * @param $socket
+ * @return array
+ */
+function process_file($host, $port, $root, $modify_table, $filename, $socket, $changed)
+{
+    if (!isset($modify_table[$filename])) {
+        $filemtime = filemtime($filename);
+        list($modify_table, $socket, $changed) = send_file_change($host, $port, $root, $filemtime, $modify_table, $filename, $socket);
+        return array($modify_table, $socket, $changed);
+    } else {
+        $filemtime = filemtime($filename);
+        if ($modify_table[$filename] != $filemtime) {
+            list($modify_table, $socket, $changed) = send_file_change($host, $port, $root, $filemtime, $modify_table, $filename, $socket);
+        } else {
+            // echo ".";
+        }
+        return array($modify_table, $socket, $changed);
+    }
 }
 
 
