@@ -109,6 +109,10 @@ function end_socket($socket)
     socket_close($socket);
 }
 
+/**
+ * 获取配置
+ * @return array|mixed|string
+ */
 function get_config()
 {
     $config_file = __DIR__.'/config.default.json';
@@ -132,6 +136,12 @@ function get_config()
     return $config;
 }
 
+/**
+ * 读取足够的字节数
+ * @param $socket
+ * @param $len
+ * @return string
+ */
 function socket_read_enough($socket, $len)
 {
     if (!$len) {
@@ -146,6 +156,12 @@ function socket_read_enough($socket, $len)
     return $ret;
 }
 
+/**
+ * 写入足够的字节
+ * @param $socket
+ * @param $st
+ * @return bool
+ */
 function socket_write_big($socket, $st)
 {
     $length = strlen($st);
@@ -191,18 +207,22 @@ function save_file($socket, $filename, $len)
     return;
 }
 
-function send_file($socket, $filename)
-{
-    echo "send file $filename\n";
-    $content = file_get_contents($filename);
-    socket_write($socket, $content) or die("Write failed in ".__FUNCTION__."():".__LINE__."\n"); // 数据传送 向服务器发送消息
-}
-
+/**
+ * 是否是文本文件
+ * @param $filename
+ * @return bool
+ */
 function is_text_file($filename)
 {
     return !preg_match('/\.png$|\.jpg|\.gif$|\.eot$|\.woff$|\.ttf$/i', $filename);
 }
 
+/**
+ * 发送文件
+ * @param $socket
+ * @param $root
+ * @param $filename
+ */
 function send_relet_file($socket, $root, $filename)
 {
     if (strpos($filename, $root) !== 0) {
@@ -216,7 +236,6 @@ function send_relet_file($socket, $root, $filename)
     if (is_text_file($filename)) {
         $content = str_replace(PHP_EOL, "\n", $content);
     }
-    // $content = mb_convert_encoding($content, 'UTF-8');
     // echo "$content\n";
     $size = strlen($content);
     if ($size == 0) {
@@ -242,6 +261,10 @@ function send_relet_file($socket, $root, $filename)
     }
 }
 
+/**
+ * 发送结束命令
+ * @param $socket
+ */
 function send_end($socket)
 {
     echo "send end\n";
@@ -256,6 +279,12 @@ function send_end($socket)
     socket_write($socket, ($json)) or die("Write failed\n"); // 数据传送 向服务器发送消息  
 }
 
+/**
+ * 接收文件
+ * @param $socket
+ * @param $root
+ * @return bool|int|void
+ */
 function save_relet_file($socket, $root)
 {
     echo "Read client data \n";
@@ -300,6 +329,10 @@ function save_relet_file($socket, $root)
     return save_file($socket, $filename, $ctrl->size);
 }
 
+/**
+ * 载入最后修改时间表
+ * @return array|mixed
+ */
 function load_modify_time()
 {
     $f = __DIR__.'/modify_time';
@@ -309,6 +342,11 @@ function load_modify_time()
     return array();
 }
 
+/**
+ * 保存最后修改时间表
+ * @param $modify_table
+ * @return int
+ */
 function save_modify_time($modify_table)
 {
     $f = __DIR__.'/modify_time';
