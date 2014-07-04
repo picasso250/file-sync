@@ -6,14 +6,14 @@
  */
 function get_config()
 {
-    $config_file = __DIR__.'/config.default.json';
+    $config_file = dirname(__DIR__).'/config.default.json';
     if (!is_file($config_file)) {
         echo "$config_file not exists\n";
         exit(1);
     }
     $config = file_get_contents($config_file);
     $config = json_decode($config, true);
-    $f = __DIR__.'/config.user.json';
+    $f = dirname(__DIR__).'/config.user.json';
     if (is_file($f)) {
         $config_user = json_decode(file_get_contents($f), true);
         if (isset($config_user['ignore'])) {

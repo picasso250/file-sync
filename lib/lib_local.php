@@ -20,6 +20,10 @@ function watch_dir($host, $port, $root, $ignore)
     $changed = false;
 
     $modify_table = load_modify_time();
+    if (!is_dir($root)) {
+        echo "$root not dir\n";
+        exit(1);
+    }
     $queue = array($root);
 
     while (!empty($queue)) {
@@ -27,6 +31,10 @@ function watch_dir($host, $port, $root, $ignore)
         $root_dir = array_shift($queue);
         // echo "enter dir $root_dir\n";
         $d = opendir($root_dir);
+        if ($d === false) {
+            echo "$root_dir not exists\n";
+            exit(1);
+        }
 
         while (($f = readdir($d)) !== false) {
             if ($f == '.' || $f == '..') {
