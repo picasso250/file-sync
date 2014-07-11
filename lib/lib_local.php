@@ -26,6 +26,7 @@ function watch_dir($host, $port, $root, $ignore)
     }
     $queue = array($root);
 
+    $t = -microtime(true);
     while (!empty($queue)) {
         // echo "queue\n"; var_dump($queue);
         $root_dir = array_shift($queue);
@@ -53,6 +54,8 @@ function watch_dir($host, $port, $root, $ignore)
             }
         }
     }
+    $t += microtime(true);
+    echo " (scan takes " . intval($t*1000) . " ms)";
     // echo "ok\n";
     save_modify_time($modify_table);
 
