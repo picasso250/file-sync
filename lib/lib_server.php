@@ -12,7 +12,8 @@
  */
 function save_file($socket, $filename, $len)
 {
-    $f = fopen($filename, 'w');
+    $tmpfile = $filename.'.tmp.'.microtime();
+    $f = fopen($tmpfile, 'w');
     // 读取客户端数据
     echo "Read client data \n";
     // socket_read函数会一直读取客户端数据,直到遇见\n,\t或者\0字符.PHP脚本把这些字符看做是输入的结束符.
@@ -24,6 +25,9 @@ function save_file($socket, $filename, $len)
         fwrite($f, $buf);
         // echo "write: $buf   \n";
     }
+    fclose($tmpfile);
+    echo "save file $tmpfile\n";
+    rename($tmpfile, $filename);
     echo "save file $filename\n";
 
     return;
@@ -103,7 +107,7 @@ function listen_on($address, $port, $root)
     $result = socket_listen($sock, 4) or die("socket_listen() 失败的原因是:" . socket_strerror(socket_last_error()) . "/n");
     echo "on $root\n";
     echo "Binding the socket on $address:$port ... ";
-    echo "OK\nNow ready to accept connections.\nListening on the socket ... \n";
+    echo "OK\nListening on the socket $address:$port ... \n";
 
     do { // never stop the daemon
         // 它接收连接请求并调用一个子连接Socket来处理客户端和服务器间的信息
