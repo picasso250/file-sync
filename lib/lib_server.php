@@ -40,7 +40,7 @@ function save_file($socket, $filename, $len)
  * @param $root
  * @return bool|int|void
  */
-function save_relet_file($socket, $root)
+function save_relet_file($socket, $root, $use_ip = false)
 {
     echo "Read client data \n";
     $len = socket_read_enough($socket, 4);
@@ -67,7 +67,15 @@ function save_relet_file($socket, $root)
         echo "recieve end\n";
         return -1;
     }
-    $filename = "$root/$ctrl->filename";
+    if ($use_ip) {
+        $filename = "$root/$ctrl->filename";
+    } else {
+        if (!socket_getpeername($msgsock, $ip)) {
+            echo "can not get ip of client\n";
+            exit;
+        }
+        $filename = "$root/$ip/$ctrl->filename";
+    }
 
     $dirname = dirname($filename);
     if (is_file($dirname)) {
@@ -91,7 +99,7 @@ function save_relet_file($socket, $root)
  * @param $port
  * @param $root
  */
-function listen_on($address, $port, $root)
+function listen_on($address, $port, $root, $use_ip = false)
 {
     /**
      * 创建一个SOCKET
@@ -114,7 +122,7 @@ function listen_on($address, $port, $root)
         $msgsock = socket_accept($sock) or die("socket_accept() failed: reason: " . socket_strerror(socket_last_error()) . "/n");
 
         // 读取客户端数据
-        while (save_relet_file($msgsock, $root) !== -1) {
+        while (save_relet_file($msgsock, $root, $use_ip) !== -1) {
             echo "ok\n";
         }
 
