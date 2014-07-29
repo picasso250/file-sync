@@ -68,14 +68,16 @@ function save_relet_file($socket, $root, $use_ip = false)
         return -1;
     }
     if ($use_ip) {
-        $filename = "$root/$ctrl->filename";
-    } else {
         if (!socket_getpeername($msgsock, $ip)) {
             echo "can not get ip of client\n";
             exit;
         }
-        $filename = "$root/$ip/$ctrl->filename";
+        $root = "$root/$ip";
+        if (!is_dir($root)) {
+            mkdir($root);
+        }
     }
+    $filename = "$root/$ctrl->filename";
 
     $dirname = dirname($filename);
     if (is_file($dirname)) {
