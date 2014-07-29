@@ -12,4 +12,4 @@ $address = $config['host'];
 $port = $config['port']; // 调试的时候，可以多换端口来测试程序！
 $root = $config['root_server'];
 
-listen_on($address, $port, $root);
+listen_on($address, $port, $root, true);

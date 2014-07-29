@@ -25,7 +25,7 @@ function save_file($socket, $filename, $len)
         fwrite($f, $buf);
         // echo "write: $buf   \n";
     }
-    fclose($tmpfile);
+    fclose($f);
     echo "save file $tmpfile\n";
     rename($tmpfile, $filename);
     echo "save file $filename\n";
@@ -48,7 +48,6 @@ function save_relet_file($socket, $root, $use_ip = false)
         return false;
     }
     $len = unpack('i', $len);
-    var_dump($len);
     $len = $len[1];
     echo "length of control message $len\n";
     if ($len > 10000) {
@@ -62,16 +61,16 @@ function save_relet_file($socket, $root, $use_ip = false)
         echo "ctrl obj emtpy\n";
         exit();
     }
-    print_r($ctrl);
     if ($ctrl->cmd == 'end') {
         echo "recieve end\n";
         return -1;
     }
     if ($use_ip) {
-        if (!socket_getpeername($msgsock, $ip)) {
+        if (!socket_getpeername($socket, $ip)) {
             echo "can not get ip of client\n";
             exit;
         }
+        echo "IP $ip\n";
         $root = "$root/$ip";
         if (!is_dir($root)) {
             mkdir($root);
