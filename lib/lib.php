@@ -27,11 +27,10 @@ function get_config()
     return $config;
 }
 
-function get_pattern_list()
+function get_pattern_list($argv)
 {
-    $ret = $argv;
-    array_shift($ret);
-    return $ret;
+    array_shift($argv);
+    return $argv;
 }
 
 include __DIR__ . '/lib_file.php';

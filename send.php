@@ -4,10 +4,9 @@
  */
 
 if ($argc == 1) {
-    echo "Usage:\n\tsend '*.log' '*.wf'\n";
+    echo "Usage:\n\tsend \"*.log\" \"*.wf\"\n";
+    exit(1);
 }
-
-$pattern_list = get_pattern_list();
 
 require __DIR__.'/lib/lib.php';
 
@@ -21,8 +20,13 @@ $root = $config['root_client'];
 
 $socket = open_socket($host, $port);
 
+$pattern_list = get_pattern_list($argv);
 foreach ($pattern_list as $pattern) {
-    foreach (glob($pattern) as $filename) {
-        send_relet_file($socket, $root, $root.'/'.$filename);
+    echo "for pattern $pattern\nls $root/$pattern\n";
+    $file_list = glob("$root/$pattern");
+    foreach ($file_list as $filename) {
+        echo "$filename\n";
+        send_relet_file($socket, $root, $filename);
     }
+    send_end($socket);
 }
