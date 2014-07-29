@@ -17,11 +17,12 @@ $config = get_config();
 
 $host = $config['host'];
 $port = $config['port'];
+$root = $config['root_client'];
 
 $socket = open_socket($host, $port);
 
 foreach ($pattern_list as $pattern) {
     foreach (glob($pattern) as $filename) {
-        send_relet_file($socket, __DIR__, __DIR__.'/'.$filename);
+        send_relet_file($socket, $root, $root.'/'.$filename);
     }
 }

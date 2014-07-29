@@ -27,6 +27,13 @@ function get_config()
     return $config;
 }
 
+function get_pattern_list()
+{
+    $ret = $argv;
+    array_shift($ret);
+    return $ret;
+}
+
 include __DIR__ . '/lib_file.php';
 include __DIR__ . '/lib_socket.php';
 include __DIR__ . '/lib_server.php';
