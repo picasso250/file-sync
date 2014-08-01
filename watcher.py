@@ -10,7 +10,7 @@ import struct
 import re
 
 def get_config():
-    config_file = os.path.dirname(__file__)+'\config.default.json'
+    config_file = os.path.dirname(__file__)+'/config.default.json'
     if not os.path.isfile(config_file):
         print(config_file, "not exists\n")
         return None

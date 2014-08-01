@@ -10,7 +10,9 @@ file-sync
 用法
 ------
 
-在服务器上打开 `server.php` 。在本地打开 `watcher.php` 
+在服务器上打开 `server.php` 。在本地打开 `watcher.php`/`watcher.py`
+
+`watcher.py`需要python3才能使用。
 
 配置
 -------
