@@ -15,20 +15,20 @@ def get_config():
         print(config_file, "not exists\n")
         return None
     config = json.load(open(config_file))
-    print(config)
+
     f = os.path.dirname(__file__)+'/config.user.json'
     if os.path.isfile(f):
         config_user = json.load(open(f))
-        print(config_user)
         config.update(config_user)
-    print(config)
+
     return config
 
 def load_modify_time():
     f = os.path.dirname(__file__)+'/modify_time'
     if os.path.isfile(f):
         return json.load(open(f))
-    return None
+    print(f, 'not exists when load modify_time')
+    return {}
 
 def open_socket(host, port):
     print("Connect to", str(host)+':'+str(port), "... \n")
@@ -51,7 +51,7 @@ def send_relet_file(s, root, filename):
     print( "relat_path", relat_path)
     print( "send file", filename)
 
-    content = open(filename, 'rb').read(2**20) # less then 1GB
+    content = open(filename, 'rb').read(2**31) # less then 1GB
 
     size = len(content);
     if (size == 0):
@@ -130,7 +130,9 @@ def watch_dir(host, prot, root, ignore):
     s = None
     changed = False
 
-    modify_table = load_modify_time();
+    modify_table = load_modify_time()
+    if modify_table is None:
+        return None
     if not os.path.isdir(root):
         print("root not dir\n")
         return None
@@ -171,13 +173,13 @@ else:
     port = config['port'];
     root = config['root_client'];
 
-    print( "on root\n")
+    print( "on", root)
 
     ignore = config['ignore'];
     interval = 1;
     sleep = 0;
     while (True):
-        changed = watch_dir(host, port, root, ignore);
+        changed = watch_dir(host, port, root, ignore)
         if changed is None:
             break
         if changed:
