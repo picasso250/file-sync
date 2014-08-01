@@ -38,6 +38,10 @@ def open_socket(host, port):
     connection = s.connect((host, port))
     return s
 
+def is_text_file(filename):
+    # 现在是根据后缀名来判断。但这样恐怕多有不妥
+    return re.search('\.(png|jpg|gif|eot|woff|ttf|gz|tar|bz2|zip|rar|7z)$', filename, re.I) is not None
+
 def send_relet_file(s, root, filename):
     if filename.find(root) != 0:
         print( "Error: filename filename, root root not match\n")
