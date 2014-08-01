@@ -7,6 +7,7 @@ import json
 import time
 import socket
 import struct
+import re
 
 def get_config():
     config_file = os.path.dirname(__file__)+'\config.default.json'
@@ -40,7 +41,7 @@ def open_socket(host, port):
 
 def is_text_file(filename):
     # 现在是根据后缀名来判断。但这样恐怕多有不妥
-    return re.search('\.(png|jpg|gif|eot|woff|ttf|gz|tar|bz2|zip|rar|7z)$', filename, re.I) is not None
+    return re.search('\.(png|jpg|gif|eot|woff|ttf|gz|tar|bz2|zip|rar|7z)$', filename, re.I) is None
 
 def send_relet_file(s, root, filename):
     if filename.find(root) != 0:
@@ -48,10 +49,10 @@ def send_relet_file(s, root, filename):
         return None
     relat_path = filename[len(root)+1:]
     print( "relat_path", relat_path)
-    print( "send file filename\n")
-    content = open(filename).read(2**10) # less then 1GB
-    if is_text_file(filename):
-        content = content.replace("\r\n", "\n")
+    print( "send file", filename)
+
+    content = open(filename, 'rb').read(2**10) # less then 1GB
+
     size = len(content);
     if (size == 0):
         print( "emtpy file\n")
@@ -61,12 +62,12 @@ def send_relet_file(s, root, filename):
         'filename': relat_path,
         'size': size,
     }
-    json_ctrl = json.loads(ctrl);
+    json_ctrl = json.dumps(ctrl);
     l = len(json_ctrl);
-    print( "length of control message l\n")
+    print( "length of control message", l)
     l = struct.pack('i', l);
     s.sendall(l)
-    if not socket_write_enough(s, json_ctrl):
+    if not socket_write_enough(s, json_ctrl.encode('utf-8')):
         print ("Write failed in ")
     if not socket_write_enough(s, content):
         print ("Write failed in ")
@@ -154,8 +155,8 @@ def watch_dir(host, prot, root, ignore):
             elif (os.path.isdir(filename)):
                     queue.append(filename)
     t += time.time()
-    print(" (scan takes " + int(t*1000) + " ms)")
-    save_modify_time(modify_table);
+    print(" (scan takes " + str(int(t*1000)) + " ms)")
+    save_modify_time(modify_table)
 
     if s is not None:
         end_socket(s);
@@ -179,7 +180,7 @@ else:
         changed = watch_dir(host, port, root, ignore);
         if changed is None:
             break
-        if (changed):
+        if changed:
             sleep = interval;
             print()
         else:
