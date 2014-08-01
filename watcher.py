@@ -94,7 +94,18 @@ def process_file(host, port, root, modify_table, filename, s, changed):
         return (modify_table, s, changed);
 
 def socket_write_enough(s, b):
-    s.sendall(b)
+    length = len(b);
+    while True:
+        sent = s.send(b, length)
+        # Check if the entire message has been send
+        if sent < length:
+            # If not sent the entire message.
+            # Get the part of the message that has not yet been send as message
+            b = b[sent:]
+            # Get the length of the not send part
+            length -= sent
+        else:
+            break
     return True
 
 def send_end(s):
