@@ -38,13 +38,42 @@ def open_socket(host, port):
     connection = s.connect((host, port))
     return s
 
+def send_relet_file(s, root, filename):
+    if filename.find(root) != 0:
+        print( "Error: filename filename, root root not match\n")
+        return None
+    relat_path = filename[strlen(root)+1:]
+    print( "relat_path relat_path\n")
+    print( "send file filename\n")
+    content = open(filename).read(2**1000) # less then 1GB
+    if is_text_file(filename):
+        content = content.replace("\r\n", "\n")
+    size = len(content);
+    if (size == 0):
+        print( "emtpy file\n")
+    }
+    ctrl = array(
+        'cmd' => 'send file',
+        'filename' => relat_path,
+        'size' => size,
+    );
+    json_ctrl = json.loads(ctrl);
+    l = len(json_ctrl);
+    print( "length of control message l\n")
+    l = struct.pack('i', l);
+    s.sendall(l)
+    if not socket_write_enough(s, json_ctrl)):
+        print( ("Write failed in ".__FUNCTION__."():".__LINE__."\n"))
+    if not socket_write_enough(s, content)):
+        print( ("Write failed in ".__FUNCTION__."():".__LINE__."\n"))
+
 def send_file_change(host, port, root, filemtime, modify_table, filename, s):
     modify_table[filename] = filemtime;
     print( "time diff modify_table[filename] filemtime\n");
     print( "send file filename\n");
     if s is None:
         s = open_socket(host, port)
-    send_relet_file(s, root, filename);
+    send_relet_file(s, root, filename)
     changed = True
     return (modify_table, s, changed)
 
