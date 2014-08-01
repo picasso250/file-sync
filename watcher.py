@@ -51,7 +51,7 @@ def send_relet_file(s, root, filename):
     print( "relat_path", relat_path)
     print( "send file", filename)
 
-    content = open(filename, 'rb').read(2**10) # less then 1GB
+    content = open(filename, 'rb').read(2**20) # less then 1GB
 
     size = len(content);
     if (size == 0):
@@ -93,23 +93,23 @@ def process_file(host, port, root, modify_table, filename, s, changed):
             modify_table, s, changed = send_file_change(host, port, root, filemtime, modify_table, filename, s);
         return (modify_table, s, changed);
 
-def socket_write_enough(s, string):
-    s.sendall(string)
+def socket_write_enough(s, b):
+    s.sendall(b)
     return True
 
-def send_end():
+def send_end(s):
     print("send end\n")
     ctrl = {
         'cmd': 'end'
     }
-    j = json.loads(ctrl)
+    j = json.dumps(ctrl)
     l = len(j)
     print("length of control message", l)
     l = struct.pack('i', l)
-    if not socket_write_enough(socket, l):
+    if not socket_write_enough(s, l):
         print("Write failed\n");
         return None
-    if not socket_write_enough(socket, json):
+    if not socket_write_enough(s, j.encode('utf-8')):
         print("Write failed\n")
         return None
 
@@ -124,7 +124,7 @@ def end_socket(s):
 
 def save_modify_time(modify_table):
     f = 'modify_time'
-    return json.dump(modify_table, f)
+    return json.dump(modify_table, open(f, 'w'))
 
 def watch_dir(host, prot, root, ignore):
     s = None
@@ -153,7 +153,7 @@ def watch_dir(host, prot, root, ignore):
             if (os.path.isfile(filename)):
                 modify_table, s, changed = process_file(host, port, root, modify_table, filename, s, changed);
             elif (os.path.isdir(filename)):
-                    queue.append(filename)
+                queue.append(filename)
     t += time.time()
     print(" (scan takes " + str(int(t*1000)) + " ms)")
     save_modify_time(modify_table)
