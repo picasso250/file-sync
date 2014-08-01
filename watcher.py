@@ -10,33 +10,32 @@ import struct
 
 def get_config():
     config_file = os.path.dirname(__file__)+'\config.default.json'
-    if (os.path.isfile(config_file)):
+    if not os.path.isfile(config_file):
         print(config_file, "not exists\n")
         return None
-    
-    config = json.load(config_file)
+    config = json.load(open(config_file))
+    print(config)
     f = os.path.dirname(__file__)+'/config.user.json'
     if os.path.isfile(f):
-        config_user = json.load(f)
-        config = config.update(config_user)
+        config_user = json.load(open(f))
+        print(config_user)
+        config.update(config_user)
+    print(config)
     return config
 
 def load_modify_time():
     f = os.path.dirname(__file__)+'/modify_time'
-    if (os.path.isfile(f)):
-        return json.load(f)
+    if os.path.isfile(f):
+        return json.load(open(f))
     return None
 
 def open_socket(host, port):
-    print("Connect to"+host+port+ "... \n")
+    print("Connect to", str(host)+':'+str(port), "... \n")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     if s is None:
         print("Could not create socket\n"); # 创建一个Socket
         return None
     connection = s.connect((host, port))
-    if connection is None:
-        print("Could not connet server\n");# 连接
-        return None
     return s
 
 def send_file_change(host, port, root, filemtime, modify_table, filename, s):
