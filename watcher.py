@@ -9,20 +9,20 @@ import socket
 import struct
 
 def get_config():
-    config_file = 'config.default.json'
+    config_file = os.path.dirname(__file__)+'\config.default.json'
     if (os.path.isfile(config_file)):
         print(config_file, "not exists\n")
         return None
     
     config = json.load(config_file)
-    f = 'config.user.json'
+    f = os.path.dirname(__file__)+'/config.user.json'
     if os.path.isfile(f):
         config_user = json.load(f)
         config = config.update(config_user)
     return config
 
 def load_modify_time():
-    f = 'modify_time';
+    f = os.path.dirname(__file__)+'/modify_time'
     if (os.path.isfile(f)):
         return json.load(f)
     return None
