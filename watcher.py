@@ -51,7 +51,7 @@ def send_relet_file(s, root, filename):
     print( "relat_path", relat_path)
     print( "send file", filename)
 
-    content = open(filename, 'rb').read(2**31) # less then 1GB
+    content = open(filename, 'rb').read(2**20) # less then 1GB
 
     size = len(content);
     if (size == 0):
