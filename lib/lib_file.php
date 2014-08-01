@@ -14,7 +14,7 @@
 function is_text_file($filename)
 {
     // 现在是根据后缀名来判断。但这样恐怕多有不妥
-    return !preg_match('/\.png$|\.jpg|\.gif$|\.eot$|\.woff$|\.ttf$|\.gz$|\.zip$|\.rar$|\.7z$/i', $filename);
+    return !preg_match('/\.(png|jpg|gif|eot|woff|ttf|gz|tar|bz2|zip|rar|7z)$/i', $filename);
 }
 
 /**
