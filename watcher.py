@@ -8,6 +8,7 @@ import time
 import socket
 import struct
 import re
+from os.path import join
 
 def get_config():
     config_file = os.path.dirname(__file__)+'/config.default.json'
@@ -149,27 +150,17 @@ def watch_dir(host, prot, root, ignore):
         print("root not dir\n")
         return None
 
-    queue = [root]
-
     t = -time.time()
-    while len(queue) > 0:
-        root_dir = queue.pop(0)
-        if not os.path.isdir(root_dir):
-            print("root_dir not exists\n")
-            return None
 
-        for f in os.listdir(root_dir):
-            if (f == '.' or f == '..'):
-                continue;
-            if f in ignore:
-                continue;
-            filename = root_dir+'/'+f
-            if (os.path.isfile(filename)):
-                modify_table, s, changed = process_file(host, port, root, modify_table, filename, s, changed);
-            elif (os.path.isdir(filename)):
-                queue.append(filename)
+    for root, dirs, files in os.walk(root):
+        for name in files:
+            modify_table, s, changed = process_file(host, port, root, modify_table, join(root, name), s, changed);
+        for ignore_dir in ignore:
+            if ignore_dir in dirs:
+                dirs.remove(ignore_dir)  # don't visit
+
     t += time.time()
-    print(" (scan takes " + str(int(t*1000)) + " ms)")
+    print(" (scan takes " + str(int(t*1000)) + " ms)", end='')
     save_modify_time(modify_table)
 
     if s is not None:
@@ -199,5 +190,5 @@ else:
             print()
         else:
             sleep += 1
-        print("\rsleep", sleep, 's')
+        print("\rsleep", sleep, 's', end='')
         time.sleep(interval);
