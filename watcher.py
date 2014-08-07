@@ -64,7 +64,7 @@ def send_relet_file(s, root, filename):
     print('ctrl', ctrl)
     json_ctrl = json.dumps(ctrl);
     l = len(json_ctrl);
-    print( "length of control message", l)
+    # print( "length of control message", l)
     l = struct.pack('i', l);
     s.sendall(l)
     if not socket_write_enough(s, json_ctrl.encode('utf-8')):
@@ -119,7 +119,7 @@ def send_end(s):
     }
     j = json.dumps(ctrl)
     l = len(j)
-    print("length of control message", l)
+    # print("length of control message", l)
     l = struct.pack('i', l)
     if not socket_write_enough(s, l):
         print("Write failed\n");
