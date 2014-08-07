@@ -49,9 +49,6 @@ def send_relet_file(s, root, filename):
         print( "Error: filename filename, root root not match\n")
         return None
     relat_path = filename[len(root)+1:]
-    print('root', root)
-    print( "relat_path", relat_path)
-    print( "send file", filename)
 
     content = open(filename, 'rb').read(2**20) # less then 1GB
 
