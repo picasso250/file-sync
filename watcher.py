@@ -73,9 +73,7 @@ def send_relet_file(s, root, filename):
         print ("Write failed in ")
 
 def send_file_change(host, port, root, filemtime, modify_table, filename, s):
-    print('send_file_change root', root)
     modify_table[filename] = filemtime;
-    print( "time diff modify_table["+filename+"] filemtime\n");
     print( "send file", filename);
     if s is None:
         s = open_socket(host, port)
