@@ -49,6 +49,7 @@ def send_relet_file(s, root, filename):
         print( "Error: filename filename, root root not match\n")
         return None
     relat_path = filename[len(root)+1:]
+    print('root', root)
     print( "relat_path", relat_path)
     print( "send file", filename)
 
@@ -63,6 +64,7 @@ def send_relet_file(s, root, filename):
         'filename': relat_path,
         'size': size,
     }
+    print('ctrl', ctrl)
     json_ctrl = json.dumps(ctrl);
     l = len(json_ctrl);
     print( "length of control message", l)
@@ -74,12 +76,17 @@ def send_relet_file(s, root, filename):
         print ("Write failed in ")
 
 def send_file_change(host, port, root, filemtime, modify_table, filename, s):
+    print('send_file_change root', root)
     modify_table[filename] = filemtime;
-    print( "time diff modify_table[filename] filemtime\n");
-    print( "send file filename\n");
+    print( "time diff modify_table["+filename+"] filemtime\n");
+    print( "send file", filename);
     if s is None:
         s = open_socket(host, port)
     send_relet_file(s, root, filename)
+
+    buff = s.recv(1024)
+    print("Response was:", buff, "\n");
+
     changed = True
     return (modify_table, s, changed)
 
@@ -152,9 +159,9 @@ def watch_dir(host, prot, root, ignore):
 
     t = -time.time()
 
-    for root, dirs, files in os.walk(root):
+    for r, dirs, files in os.walk(root):
         for name in files:
-            modify_table, s, changed = process_file(host, port, root, modify_table, join(root, name), s, changed);
+            modify_table, s, changed = process_file(host, port, root, modify_table, join(r, name), s, changed);
         for ignore_dir in ignore:
             if ignore_dir in dirs:
                 dirs.remove(ignore_dir)  # don't visit
