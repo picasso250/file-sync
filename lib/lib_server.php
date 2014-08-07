@@ -76,7 +76,7 @@ function save_relet_file($socket, $root, $use_ip = false)
             mkdir($root);
         }
     }
-    $filename = "$root/$ctrl->filename";
+    $filename = "$root/".str_replace('\\', '/', $ctrl->filename);
 
     $dirname = dirname($filename);
     if (is_file($dirname)) {
