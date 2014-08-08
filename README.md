@@ -21,13 +21,22 @@ file-sync
 
 你也可以使用 `config.user.json` 文件，此文件中的配置会覆盖 `config.default.json`
 
+更新
+------
+
+- 2014年8月8日 支持多个服务器-客户端文件夹的配对
+
 ```json
 {
     "host": "127.0.0.1", // 监听的IP
     "port": 5666,        // 端口
-    "root_server": "./server", // 服务器的根目录
-    "root_client": "./client", // 客户端的监视的根目录
-    "ignore": [".git", ".svn", ".idea"] // 忽略的文件或者文件夹
+    "pairs": [ // 支持多个服务器-客户端文件夹的配对
+        {
+            "root_server": "/home/work", // 服务器的根目录
+            "root_client": "D:/work", // 客户端的监视的根目录
+            "ignore": [".git", ".svn", ".idea"] // 忽略的文件或者文件夹
+        },
+    ]
 }
 
 ```
