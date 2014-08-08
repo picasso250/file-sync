@@ -29,6 +29,7 @@ while (true) {
     }
     if ($changed) {
         $sleep = $interval;
+        $changed = false;
         echo "\n";
     } else {
         $sleep++;
