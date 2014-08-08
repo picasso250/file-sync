@@ -6,6 +6,6 @@
             "root_server": "/home/work",
             "root_client": "D:/work",
             "ignore": [".git", ".svn", ".idea"]
-        },
+        }
     ]
 }
