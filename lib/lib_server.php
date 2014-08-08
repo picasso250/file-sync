@@ -37,10 +37,10 @@ function save_file($socket, $filename, $len)
 /**
  * 接收文件
  * @param $socket
- * @param $root
+ * @param $pairs
  * @return bool|int|void
  */
-function save_relet_file($socket, $root, $use_ip = false)
+function save_relet_file($socket, $pairs, $use_ip = false)
 {
     echo "Read client data \n";
     $len = socket_read_enough($socket, 4);
@@ -71,6 +71,7 @@ function save_relet_file($socket, $root, $use_ip = false)
             exit;
         }
         echo "IP $ip\n";
+        $root = $pairs[$ctrl->id]['root_server'];
         $root = "$root/$ip";
         if (!is_dir($root)) {
             mkdir($root);
@@ -98,9 +99,9 @@ function save_relet_file($socket, $root, $use_ip = false)
  * 端口
  * @param $address
  * @param $port
- * @param $root
+ * @param $pairs
  */
-function listen_on($address, $port, $root, $use_ip = false)
+function listen_on($address, $port, $pairs, $use_ip = false)
 {
     /**
      * 创建一个SOCKET
@@ -114,7 +115,6 @@ function listen_on($address, $port, $root, $use_ip = false)
     $result = socket_bind($sock, $address, $port) or die("socket_bind() 失败的原因是:" . socket_strerror(socket_last_error()) . "/n");
     //开始监听
     $result = socket_listen($sock, 4) or die("socket_listen() 失败的原因是:" . socket_strerror(socket_last_error()) . "/n");
-    echo "on $root\n";
     echo "Binding the socket on $address:$port ... ";
     echo "OK\nListening on the socket $address:$port ... \n";
 
@@ -123,7 +123,7 @@ function listen_on($address, $port, $root, $use_ip = false)
         $msgsock = socket_accept($sock) or die("socket_accept() failed: reason: " . socket_strerror(socket_last_error()) . "/n");
 
         // 读取客户端数据
-        while (save_relet_file($msgsock, $root, $use_ip) !== -1) {
+        while (save_relet_file($msgsock, $pairs, $use_ip) !== -1) {
             echo "ok\n";
         }
 

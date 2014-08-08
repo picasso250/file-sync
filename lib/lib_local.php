@@ -14,7 +14,7 @@
  * @param $ignore array 忽略的文件
  * @return bool 是否被改变
  */
-function watch_dir($host, $port, $root, $ignore)
+function watch_dir($host, $port, $id, $root, $ignore)
 {
     $socket = null;
     $changed = false;
@@ -47,7 +47,7 @@ function watch_dir($host, $port, $root, $ignore)
             }
             $filename = "$root_dir/$f";
             if (is_file($filename)) {
-                list($modify_table, $socket, $changed) = process_file($host, $port, $root, $modify_table, $filename, $socket, $changed);
+                list($modify_table, $socket, $changed) = process_file($host, $port, $id, $root, $modify_table, $filename, $socket, $changed);
             } elseif (is_dir($filename)) {
                 // echo "add to queue $filename\n";
                 $queue[] = "$filename";
@@ -75,16 +75,16 @@ function watch_dir($host, $port, $root, $ignore)
  * @param $socket
  * @return array
  */
-function process_file($host, $port, $root, $modify_table, $filename, $socket, $changed)
+function process_file($host, $port, $id, $root, $modify_table, $filename, $socket, $changed)
 {
     if (!isset($modify_table[$filename])) {
         $filemtime = filemtime($filename);
-        list($modify_table, $socket, $changed) = send_file_change($host, $port, $root, $filemtime, $modify_table, $filename, $socket);
+        list($modify_table, $socket, $changed) = send_file_change($host, $port, $id, $root, $filemtime, $modify_table, $filename, $socket);
         return array($modify_table, $socket, $changed);
     } else {
         $filemtime = filemtime($filename);
         if ($modify_table[$filename] != $filemtime) {
-            list($modify_table, $socket, $changed) = send_file_change($host, $port, $root, $filemtime, $modify_table, $filename, $socket);
+            list($modify_table, $socket, $changed) = send_file_change($host, $port, $id, $root, $filemtime, $modify_table, $filename, $socket);
         } else {
             // echo ".";
         }
@@ -104,7 +104,7 @@ function process_file($host, $port, $root, $modify_table, $filename, $socket, $c
  * @param $socket
  * @return array
  */
-function send_file_change($host, $port, $root, $filemtime, $modify_table, $filename, $socket)
+function send_file_change($host, $port, $id, $root, $filemtime, $modify_table, $filename, $socket)
 {
     $modify_table[$filename] = $filemtime;
     echo "time diff $modify_table[$filename] $filemtime\n";
@@ -112,7 +112,7 @@ function send_file_change($host, $port, $root, $filemtime, $modify_table, $filen
     if ($socket === null) {
         $socket = open_socket($host, $port);
     }
-    send_relet_file($socket, $root, $filename);
+    send_relet_file($socket, $id, $root, $filename);
     $changed = true;
     return array($modify_table, $socket, $changed);
 }
@@ -173,7 +173,7 @@ function send_end($socket)
  * @param $root
  * @param $filename
  */
-function send_relet_file($socket, $root, $filename)
+function send_relet_file($socket, $id, $root, $filename)
 {
     if (strpos($filename, $root) !== 0) {
         echo "Error: filename $filename, root $root not match\n";
@@ -196,6 +196,7 @@ function send_relet_file($socket, $root, $filename)
         'cmd' => 'send file',
         'filename' => $relat_path,
         'size' => $size,
+        'id' => $id,
     );
     // var_dump($ctrl);
     $json = json_encode($ctrl);

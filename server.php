@@ -10,6 +10,6 @@ $config = get_config();
 // 设置IP和端口号
 $address = $config['host'];  
 $port = $config['port']; // 调试的时候，可以多换端口来测试程序！
-$root = $config['root_server'];
+$pairs = $config['pairs'];
 
-listen_on($address, $port, $root);
+listen_on($address, $port, $pairs);

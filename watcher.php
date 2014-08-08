@@ -11,15 +11,21 @@ $config = get_config();
 
 $host = $config['host'];
 $port = $config['port'];
-$root = $config['root_client'];
+$pairs = $config['pairs'];
 
-echo "on $root\n";
 
-$ignore = $config['ignore'];
 $interval = 1;
 $sleep = 0;
+$changed = false;
 while (true) {
-    $changed = watch_dir($host, $port, $root, $ignore);
+    foreach ($pairs as $id => $pair) {
+        $root = $pair['root_client'];
+
+        echo "on $root\n";
+
+        $ignore = $pair['ignore'];
+        $changed |= watch_dir($host, $port, $id, $root, $ignore);
+    }
     if ($changed) {
         $sleep = $interval;
         echo "\n";
