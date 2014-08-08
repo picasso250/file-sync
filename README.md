@@ -35,7 +35,7 @@ file-sync
             "root_server": "/home/work", // 服务器的根目录
             "root_client": "D:/work", // 客户端的监视的根目录
             "ignore": [".git", ".svn", ".idea"] // 忽略的文件或者文件夹
-        },
+        }
     ]
 }
 
