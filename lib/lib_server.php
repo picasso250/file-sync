@@ -65,13 +65,13 @@ function save_relet_file($socket, $pairs, $use_ip = false)
         echo "recieve end\n";
         return -1;
     }
+    $root = $pairs[$ctrl->id]['root_server'];
     if ($use_ip) {
         if (!socket_getpeername($socket, $ip)) {
             echo "can not get ip of client\n";
             exit;
         }
         echo "IP $ip\n";
-        $root = $pairs[$ctrl->id]['root_server'];
         $root = "$root/$ip";
         if (!is_dir($root)) {
             mkdir($root);
