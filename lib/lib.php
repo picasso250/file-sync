@@ -16,13 +16,7 @@ function get_config()
     $f = dirname(__DIR__).'/config.user.json';
     if (is_file($f)) {
         $config_user = json_decode(file_get_contents($f), true);
-        if (isset($config_user['ignore'])) {
-            $ignore = array_merge($config['ignore'], $config_user['ignore']);
-        }
         $config = array_merge($config, $config_user);
-        if (isset($ignore)) {
-            $config['ignore'] = $ignore;
-        }
     }
     return $config;
 }
