@@ -13,6 +13,10 @@ $host = $config['host'];
 $port = $config['port'];
 $pairs = $config['pairs'];
 
+foreach ($pairs as $id => $pair) {
+    $root = $pair['root_client'];
+    echo "on $root\n";
+}
 
 $interval = 1;
 $sleep = 0;
@@ -20,9 +24,6 @@ $changed = false;
 while (true) {
     foreach ($pairs as $id => $pair) {
         $root = $pair['root_client'];
-
-        echo "on $root\n";
-
         $ignore = $pair['ignore'];
         $changed |= watch_dir($host, $port, $id, $root, $ignore);
     }
