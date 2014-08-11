@@ -44,7 +44,7 @@ def is_text_file(filename):
     # 现在是根据后缀名来判断。但这样恐怕多有不妥
     return re.search('\.(png|jpg|gif|eot|woff|ttf|gz|tar|bz2|zip|rar|7z)$', filename, re.I) is None
 
-def send_relet_file(s, root, filename):
+def send_relet_file(s, id_, root, filename):
     if filename.find(root) != 0:
         print( "Error: filename filename, root root not match\n")
         return None
@@ -60,6 +60,7 @@ def send_relet_file(s, root, filename):
         'cmd' : 'send file',
         'filename': relat_path,
         'size': size,
+        'id': id_
     }
     print('ctrl', ctrl)
     json_ctrl = json.dumps(ctrl);
@@ -72,12 +73,12 @@ def send_relet_file(s, root, filename):
     if not socket_write_enough(s, content):
         print ("Write failed in ")
 
-def send_file_change(host, port, root, filemtime, modify_table, filename, s):
+def send_file_change(host, port, id_, root, filemtime, modify_table, filename, s):
     modify_table[filename] = filemtime;
     print( "send file", filename);
     if s is None:
         s = open_socket(host, port)
-    send_relet_file(s, root, filename)
+    send_relet_file(s, id_, root, filename)
 
     buff = s.recv(1024)
     print("Response was:", buff, "\n");
@@ -85,15 +86,15 @@ def send_file_change(host, port, root, filemtime, modify_table, filename, s):
     changed = True
     return (modify_table, s, changed)
 
-def process_file(host, port, root, modify_table, filename, s, changed):
+def process_file(host, port, id_, root, modify_table, filename, s, changed):
     if filename not in modify_table:
         filemtime = os.path.getmtime(filename);
-        modify_table, s, changed = send_file_change(host, port, root, filemtime, modify_table, filename, s);
+        modify_table, s, changed = send_file_change(host, port, id_, root, filemtime, modify_table, filename, s);
         return (modify_table, s, changed);
     else:
         filemtime = os.path.getmtime(filename);
         if (modify_table[filename] != filemtime):
-            modify_table, s, changed = send_file_change(host, port, root, filemtime, modify_table, filename, s);
+            modify_table, s, changed = send_file_change(host, port, id_, root, filemtime, modify_table, filename, s);
         return (modify_table, s, changed);
 
 def socket_write_enough(s, b):
@@ -141,7 +142,7 @@ def save_modify_time(modify_table):
     f = 'modify_time'
     return json.dump(modify_table, open(f, 'w'))
 
-def watch_dir(host, prot, root, ignore):
+def watch_dir(host, prot, id_, root, ignore):
     s = None
     changed = False
 
@@ -156,38 +157,46 @@ def watch_dir(host, prot, root, ignore):
 
     for r, dirs, files in os.walk(root):
         for name in files:
-            modify_table, s, changed = process_file(host, port, root, modify_table, join(r, name), s, changed);
+            modify_table, s, changed = process_file(host, port, id_, root, modify_table, join(r, name), s, changed);
         for ignore_dir in ignore:
             if ignore_dir in dirs:
                 dirs.remove(ignore_dir)  # don't visit
 
     t += time.time()
-    print(" (scan takes " + str(int(t*1000)) + " ms)", end='')
+    print(" (scan", root, "takes " + str(int(t*1000)) + " ms)", end='')
     save_modify_time(modify_table)
 
     if s is not None:
         end_socket(s);
-    return changed;
+    return changed
 
 config = get_config()
 
 if config is None:
     print('config is None')
 else:
-    host = config['host'];
-    port = config['port'];
-    root = config['root_client'];
+    host = config['host']
+    port = config['port']
+    pairs = config['pairs']
 
-    print( "on", root)
+    for cs_pair in pairs:
+        root = cs_pair['root_client']
+        print( "on", root)
 
-    ignore = config['ignore'];
     interval = 1;
     sleep = 0;
+    changed = False
     while (True):
-        changed = watch_dir(host, port, root, ignore)
+        i = 0
+        for cs_pair in pairs:
+            root = cs_pair['root_client']
+            ignore = cs_pair['ignore'];
+            changed |= watch_dir(host, port, i, root, ignore)
+            i += 1
         if changed is None:
             break
         if changed:
+            changed = False
             sleep = interval;
             print()
         else:
