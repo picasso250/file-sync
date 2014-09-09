@@ -15,4 +15,4 @@ wget "https://raw.githubusercontent.com/picasso250/file-sync/master/lib/lib_serv
 wget "https://raw.githubusercontent.com/picasso250/file-sync/master/lib/lib_local.php"
 wget "https://raw.githubusercontent.com/picasso250/file-sync/master/lib/lib_socket.php"
 
-echo "install on ~/.file-sync"
+echo "Installed on ~/.file-sync"
