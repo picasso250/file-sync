@@ -5,6 +5,7 @@ cd ~/.file-sync
 
 wget "https://raw.githubusercontent.com/picasso250/file-sync/master/server.php"
 wget "https://raw.githubusercontent.com/picasso250/file-sync/master/config.default.json"
+cp config.default.json config.user.json
 
 mkdir lib
 cd lib
