@@ -55,7 +55,7 @@ function watch_dir($host, $port, $id, $root, $ignore)
         }
     }
     $t += microtime(true);
-    echo " (scan $root takes " . intval($t*1000) . " ms)";
+    echo " ($root " . intval($t*1000) . " ms)";
     // echo "ok\n";
     save_modify_time($modify_table);
 
