@@ -157,7 +157,8 @@ def watch_dir(host, prot, id_, root, ignore):
 
     for r, dirs, files in os.walk(root):
         for name in files:
-            modify_table, s, changed = process_file(host, port, id_, root, modify_table, join(r, name), s, changed);
+            if name not in ignore:
+                modify_table, s, changed = process_file(host, port, id_, root, modify_table, join(r, name), s, changed);
         for ignore_dir in ignore:
             if ignore_dir in dirs:
                 dirs.remove(ignore_dir)  # don't visit
@@ -190,7 +191,7 @@ else:
         i = 0
         for cs_pair in pairs:
             root = cs_pair['root_client']
-            ignore = cs_pair['ignore'];
+            ignore = cs_pair['ignore']
             changed |= watch_dir(host, port, i, root, ignore)
             i += 1
         if changed is None:
