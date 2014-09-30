@@ -8,6 +8,7 @@ import time
 import socket
 import struct
 import re
+import logging
 from os.path import join
 
 def get_config():
@@ -74,14 +75,14 @@ def send_relet_file(s, id_, root, filename):
         print ("Write failed in ")
 
 def send_file_change(host, port, id_, root, filemtime, modify_table, filename, s):
-    modify_table[filename] = filemtime;
-    print( "send file", filename);
+    modify_table[filename] = filemtime
+    logging.info("send file %s", filename)
     if s is None:
         s = open_socket(host, port)
     send_relet_file(s, id_, root, filename)
 
     buff = s.recv(1024)
-    print("Response was:", buff, "\n");
+    logging.debug("Response was: %s", buff)
 
     changed = True
     return (modify_table, s, changed)
@@ -164,12 +165,14 @@ def watch_dir(host, prot, id_, root, ignore):
                 dirs.remove(ignore_dir)  # don't visit
 
     t += time.time()
-    print(" (scan", root, "takes " + str(int(t*1000)) + " ms)", end='')
+    print(root, "=", str(int(t*1000)), end='ms, ')
     save_modify_time(modify_table)
 
     if s is not None:
         end_socket(s);
     return changed
+
+logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG, filename='app.log')
 
 config = get_config()
 
@@ -202,5 +205,5 @@ else:
             print()
         else:
             sleep += 1
-        print("\rsleep", sleep, 's', end='')
+        print("\rsleep", sleep, 's', end=' ')
         time.sleep(interval);
