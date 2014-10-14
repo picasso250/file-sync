@@ -60,7 +60,6 @@ class Protocol(object):
             print('can not be 0 of title length')
             return {}, None
         l, = struct.unpack('i', l)
-        print('_recv', l)
         if l == 0:
             print('no 0')
             return {}, None
@@ -81,7 +80,6 @@ class Protocol(object):
             if len(data) == 0:
                 print('empty data')
                 break
-        print('return bytes', b)
         return b
 
     def close(self):
