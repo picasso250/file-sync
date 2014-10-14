@@ -5,11 +5,10 @@
 import os
 import json
 import time
-import socket
-import struct
 import re
 import logging
 from os.path import join
+import protocol
 
 def get_config():
     config_file = os.path.dirname(__file__)+'/config.default.json'
@@ -32,15 +31,6 @@ def load_modify_time():
     print(f, 'not exists when load modify_time')
     return {}
 
-def open_socket(host, port):
-    print("Connect to", str(host)+':'+str(port), "... \n")
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    if s is None:
-        print("Could not create socket\n"); # 创建一个Socket
-        return None
-    connection = s.connect((host, port))
-    return s
-
 def is_text_file(filename):
     # 现在是根据后缀名来判断。但这样恐怕多有不妥
     return re.search('\.(png|jpg|gif|eot|woff|ttf|gz|tar|bz2|zip|rar|7z)$', filename, re.I) is None
@@ -49,36 +39,23 @@ def send_relet_file(s, id_, root, filename):
     if filename.find(root) != 0:
         print( "Error: filename filename, root root not match\n")
         return None
+    print('upload', filename)
     relat_path = filename[len(root)+1:]
 
     content = open(filename, 'rb').read(2**20) # less then 1GB
-
-    size = len(content);
-    if (size == 0):
-        print( "emtpy file\n")
     
     ctrl = {
         'cmd' : 'send file',
         'filename': relat_path,
-        'size': size,
         'id': id_
     }
-    print('ctrl', ctrl)
-    json_ctrl = json.dumps(ctrl);
-    l = len(json_ctrl);
-    # print( "length of control message", l)
-    l = struct.pack('i', l);
-    s.sendall(l)
-    if not socket_write_enough(s, json_ctrl.encode('utf-8')):
-        print ("Write failed in ")
-    if not socket_write_enough(s, content):
-        print ("Write failed in ")
+    s.send(ctrl, content)
 
 def send_file_change(host, port, id_, root, filemtime, modify_table, filename, s):
     modify_table[filename] = filemtime
     logging.info("send file %s", filename)
     if s is None:
-        s = open_socket(host, port)
+        s = protocol.Protocol(host, port)
     send_relet_file(s, id_, root, filename)
 
     buff = s.recv(1024)
@@ -98,37 +75,12 @@ def process_file(host, port, id_, root, modify_table, filename, s, changed):
             modify_table, s, changed = send_file_change(host, port, id_, root, filemtime, modify_table, filename, s);
         return (modify_table, s, changed);
 
-def socket_write_enough(s, b):
-    length = len(b);
-    while True:
-        sent = s.send(b)
-        # Check if the entire message has been send
-        if sent < length:
-            print('send more')
-            # If not sent the entire message.
-            # Get the part of the message that has not yet been send as message
-            b = b[sent:]
-            # Get the length of the not send part
-            length -= sent
-        else:
-            break
-    return True
-
 def send_end(s):
     print("send end\n")
     ctrl = {
         'cmd': 'end'
     }
-    j = json.dumps(ctrl)
-    l = len(j)
-    # print("length of control message", l)
-    l = struct.pack('i', l)
-    if not socket_write_enough(s, l):
-        print("Write failed\n");
-        return None
-    if not socket_write_enough(s, j.encode('utf-8')):
-        print("Write failed\n")
-        return None
+    s.send(ctrl)
 
 def end_socket(s):
     send_end(s);

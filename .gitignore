@@ -44,3 +44,4 @@ config.user.json
 modify_time
 .idea
 *.log
+*.pyc
