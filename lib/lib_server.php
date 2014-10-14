@@ -89,11 +89,18 @@ function save_relet_file($socket, $pairs, $use_ip = false)
         mkdir($dirname, 0777, true);
     }
 
-    socket_write($socket, 'recieve a file '.$filename."\n");
+    $info = (['cmd' => 'recieve', 'file' => $filename]);
+    reply($socket, $info);
 
     return save_file($socket, $filename, $ctrl->size);
 }
 
+function reply($socket, $info)
+{
+    $j = json_encode($info);
+    $l = pack('i', strlen($j));
+    return socket_write($socket, $l.$j);
+}
 
 /**
  * 端口
@@ -128,8 +135,8 @@ function listen_on($address, $port, $pairs, $use_ip = false)
         }
 
         // 数据传送 向客户端写入返回结果
-        $json = json_encode(array('code' => 0, 'msg' => 'OK'));
-        socket_write($msgsock, $json, strlen($json)) or die("socket_write() failed: reason: " . socket_strerror(socket_last_error()) . "/n");
+        $info = (array('code' => 0, 'msg' => 'OK'));
+        reply($msgsock, $info);
         // 一旦输出被返回到客户端,父/子socket都应通过socket_close($msgsock)函数来终止
         socket_close($msgsock);
     } while (true);

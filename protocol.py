@@ -52,31 +52,37 @@ class Protocol(object):
         return True
 
     def recv(self, l = 0):
-        return self.socket.recv(1024)
-        l = self.socket.recv(4)
-        l = struct.unpack('i', l)
-        if l == 0:
-            print('no 0')
-            return {}, None
-        j = self._read_enough(l)
-        header = json.loads(j)
-        data = None
-        if 'data-size' in header and header['data-size'] > 0:
-            data = self._read_enough(header['data-size'])
-        return header, data
+        return self._recv(self.socket)
 
     def _recv(self, s):
-        l = s.recv(4)
-        l = struct.unpack('i', l)
+        l = self._read_enough(self.socket, 4)
+        if len(l) == 0:
+            print('can not be 0 of title length')
+            return {}, None
+        l, = struct.unpack('i', l)
+        print('_recv', l)
         if l == 0:
             print('no 0')
             return {}, None
         j = self._read_enough(s, l)
-        header = json.loads(j)
+        header = json.loads(j.decode())
         data = None
         if 'data-size' in header and header['data-size'] > 0:
             data = self._read_enough(s, header['data-size'])
         return header, data
+
+    def _read_enough(self, s, l):
+        b = bytes()
+        while l != 0:
+            logging.debug('recv length %s',l)
+            data = s.recv(l)
+            b += data
+            l -= len(data)
+            if len(data) == 0:
+                print('empty data')
+                break
+        print('return bytes', b)
+        return b
 
     def close(self):
         self.socket.close()

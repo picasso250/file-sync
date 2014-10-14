@@ -58,8 +58,8 @@ def send_file_change(host, port, id_, root, filemtime, modify_table, filename, s
         s = protocol.Protocol(host, port)
     send_relet_file(s, id_, root, filename)
 
-    buff = s.recv(1024)
-    logging.debug("Response was: %s", buff)
+    buff, _ = s.recv(1024)
+    logging.info("Response was: %s", str(buff))
 
     changed = True
     return (modify_table, s, changed)
