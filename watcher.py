@@ -85,7 +85,7 @@ def send_end(s):
 def end_socket(s):
     send_end(s);
     buff, _ = s.recv(1024)
-    print("Response was:", buff, "\n");
+    print("Response was:", buff, "\n")
     s.close()
 
 def save_modify_time(modify_table):
