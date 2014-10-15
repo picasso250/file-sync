@@ -77,9 +77,7 @@ def process_file(host, port, id_, root, modify_table, filename, s, changed):
 
 def send_end(s):
     print("send end\n")
-    ctrl = {
-        'cmd': 'end'
-    }
+    ctrl = {'cmd': 'end'}
     s.send(ctrl)
 
 def end_socket(s):

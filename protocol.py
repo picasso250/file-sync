@@ -36,7 +36,6 @@ def _send(s, header, data = None):
         size = 0
     else:
         size = len(data)
-    print('header', header)
     header['size'] = size
     header['data-size'] = size
     logging.info(header)
@@ -57,7 +56,6 @@ class Protocol(object):
         self.socket = self._open_socket(host, port)
         
     def send(self, header, data = None):
-        print(header)
         _send(self.socket, header, data)
 
     def _open_socket(self, host, port):
@@ -68,22 +66,6 @@ class Protocol(object):
             return None
         connection = self.socket.connect((host, port))
         return self.socket
-
-    def _socket_write_enough(self, s, b):
-        length = len(b);
-        while True:
-            sent = s.send(b)
-            # Check if the entire message has been send
-            if sent < length:
-                print('send more')
-                # If not sent the entire message.
-                # Get the part of the message that has not yet been send as message
-                b = b[sent:]
-                # Get the length of the not send part
-                length -= sent
-            else:
-                break
-        return True
 
     def recv(self, l = 0):
         return _recv(self.socket)
