@@ -39,6 +39,10 @@ def send_relet_file(s, id_, root, filename):
     if filename.find(root) != 0:
         print( "Error: filename filename, root root not match\n")
         return None
+    if not os.path.exists(filename):
+        print('Error: no file')
+        logging.error('no file '+filename)
+        return
     print('upload', filename)
     relat_path = filename[len(root)+1:]
 
@@ -68,7 +72,7 @@ def process_file(host, port, id_, root, modify_table, filename, s, changed):
     if filename not in modify_table:
         filemtime = os.path.getmtime(filename);
         modify_table, s, changed = send_file_change(host, port, id_, root, filemtime, modify_table, filename, s);
-        return (modify_table, s, changed);
+        return (modify_table, s, changed)
     else:
         filemtime = os.path.getmtime(filename);
         if (modify_table[filename] != filemtime):
