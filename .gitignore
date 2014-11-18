@@ -45,3 +45,4 @@ modify_time
 .idea
 *.log
 *.pyc
+test.txt
