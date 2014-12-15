@@ -57,7 +57,7 @@ function watch_dir($host, $port, $id, $root, $ignore)
     $t += microtime(true);
     echo " ($root " . intval($t*1000) . " ms)";
     // echo "ok\n";
-    save_modify_time($modify_table);
+    save_modify_time(modify_time());
 
     if ($socket !== null) {
         end_socket($socket);
@@ -77,13 +77,13 @@ function watch_dir($host, $port, $id, $root, $ignore)
  */
 function process_file($host, $port, $id, $root, $modify_table, $filename, $socket, $changed)
 {
-    if (!isset($modify_table[$filename])) {
+    if (modify_time($filename) === null) {
         $filemtime = filemtime($filename);
         list($modify_table, $socket, $changed) = send_file_change($host, $port, $id, $root, $filemtime, $modify_table, $filename, $socket);
         return array($modify_table, $socket, $changed);
     } else {
         $filemtime = filemtime($filename);
-        if ($modify_table[$filename] != $filemtime) {
+        if (modify_time($filename) != $filemtime) {
             list($modify_table, $socket, $changed) = send_file_change($host, $port, $id, $root, $filemtime, $modify_table, $filename, $socket);
         } else {
             // echo ".";
@@ -106,8 +106,8 @@ function process_file($host, $port, $id, $root, $modify_table, $filename, $socke
  */
 function send_file_change($host, $port, $id, $root, $filemtime, $modify_table, $filename, $socket)
 {
-    $modify_table[$filename] = $filemtime;
-    echo "time diff $modify_table[$filename] $filemtime\n";
+    modify_time($filename, $filemtime);
+    // echo "time diff $modify_table[$filename] $filemtime\n";
     echo "send file $filename\n";
     if ($socket === null) {
         $socket = open_socket($host, $port);
@@ -117,7 +117,23 @@ function send_file_change($host, $port, $id, $root, $filemtime, $modify_table, $
     return array($modify_table, $socket, $changed);
 }
 
-
+function modify_time($key = null, $value = null)
+{
+    static $modify_table;
+    if (empty($modify_table)) {
+        $modify_table = load_modify_time();
+    }
+    if ($key === null) {
+        return $modify_table;
+    }
+    if (PHP_OS === 'WINNT') {
+        $key = iconv('GBK', 'UTF-8', $key);
+    }
+    if ($value === null) {
+        return isset($modify_table[$key]) ? $modify_table[$key] : null;
+    }
+    $modify_table[$key] = $value;
+}
 
 /**
  * 打开和服务器端的连接
@@ -194,12 +210,15 @@ function send_relet_file($socket, $id, $root, $filename)
     }
     $ctrl = array(
         'cmd' => 'send file',
-        'filename' => $relat_path,
+        'filename' => iconv('GBK', 'UTF-8', $relat_path),
         'size' => $size,
         'id' => $id,
     );
     // var_dump($ctrl);
     $json = json_encode($ctrl);
+    if (json_last_error()) {
+        echo "json encode error ", json_last_error(),"\n";
+    }
     $len = strlen($json);
     echo "length of control message $len\n";
     $len = pack('i', $len);

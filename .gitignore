@@ -46,3 +46,4 @@ modify_time
 *.log
 *.pyc
 test.txt
+lib/test_json.php
