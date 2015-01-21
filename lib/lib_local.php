@@ -47,7 +47,14 @@ function watch_dir($host, $port, $id, $root, $ignore)
             }
             $filename = "$root_dir/$f";
             if (is_file($filename)) {
-                list($modify_table, $socket, $changed) = process_file($host, $port, $id, $root, $modify_table, $filename, $socket, $changed);
+                $filesize = filesize($filename);
+                assert($filesize !== false);
+                if ($filesize > 100 * 1024 * 1024) {
+                    // big than 100M
+                    echo "skip $filename with size $filesize\n";
+                } else {
+                    list($modify_table, $socket, $changed) = process_file($host, $port, $id, $root, $modify_table, $filename, $socket, $changed);
+                }
             } elseif (is_dir($filename)) {
                 // echo "add to queue $filename\n";
                 $queue[] = "$filename";
