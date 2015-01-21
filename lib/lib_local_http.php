@@ -76,12 +76,13 @@ function http_process_file($url, $id, $root, $modify_table, $filename, $changed)
 {
     if (modify_time($filename) === null) {
         $filemtime = filemtime($filename);
-        list($modify_table, $changed) = http_send_file_change($url, $id, $root, $filemtime, $modify_table, $filename);
-        return array($modify_table, $changed);
+        $modify_table = http_send_file_change($url, $id, $root, $filemtime, $modify_table, $filename);
+        return array($modify_table, true);
     } else {
         $filemtime = filemtime($filename);
         if (modify_time($filename) != $filemtime) {
-            list($modify_table, $changed) = http_send_file_change($url, $id, $root, $filemtime, $modify_table, $filename);
+            $modify_table = http_send_file_change($url, $id, $root, $filemtime, $modify_table, $filename);
+            $changed = true;
         } else {
             // echo ".";
         }
@@ -107,8 +108,7 @@ function http_send_file_change($url, $id, $root, $filemtime, $modify_table, $fil
     // echo "time diff $modify_table[$filename] $filemtime\n";
     echo "send file $filename\n";
     http_send_relet_file($url, $id, $root, $filename);
-    $changed = true;
-    return array($modify_table, $changed);
+    return $modify_table;
 }
 
 /**
