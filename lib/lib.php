@@ -30,4 +30,6 @@ function get_pattern_list($argv)
 include __DIR__ . '/lib_file.php';
 include __DIR__ . '/lib_socket.php';
 include __DIR__ . '/lib_server.php';
+include __DIR__ . '/lib_server_http.php';
 include __DIR__ . '/lib_local.php';
+include __DIR__ . '/lib_local_http.php';
