@@ -1,0 +1,3 @@
+[submodule "php-tiny-frame"]
+	path = php-tiny-frame
+	url = git@github.com:picasso250/php-tiny-frame.git
