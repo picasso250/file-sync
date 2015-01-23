@@ -17,9 +17,9 @@ import (
     "io/ioutil"
 )
 
-func ContainsListAny(str string, a []string) bool {
+func ContainsListAny(str string, a []interface{}) bool {
     for _, v := range a {
-        if strings.Contains(str, v) {
+        if strings.Contains(str, v.(string)) {
             return true;
         }
     }
@@ -171,7 +171,10 @@ func main() {
         for i, pair := range pairs {
             p := pair.(map[string]interface{})
             tf := "ModTimeTable." + strconv.Itoa(i)
-            a := [...]string{".git", ".idea", tf}
+            ign := p["ignore"].([]interface{})
+            n := len(ign)
+            ign = ign[0:n+1]
+            ign[n] = tf
             err := readTime(tf, &d)
             if err != nil {
                 log.Fatal(err)
@@ -184,7 +187,7 @@ func main() {
                     return nil
                 }
                 idir := info.IsDir()
-                if !idir && !ContainsListAny(path, a[:]) {
+                if !idir && !ContainsListAny(path, ign) {
                     if d[path] != info.ModTime() {
                         d[path] = info.ModTime()
                         rela := path[len(root):]
