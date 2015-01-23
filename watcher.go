@@ -172,7 +172,7 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    url := config["url"].(string)
+    url := "http://cq01-rdqa-dev101.cq01.baidu.com:8088/upload_file"
     focus := [...]string{".doc", ".xls"}
     for {
         tf := "ModTimeTable"
