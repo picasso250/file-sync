@@ -11,15 +11,22 @@ import (
     "bufio"
     "log"
     "path/filepath"
-    "strconv"
     "mime/multipart"
     "net/http"
     "io/ioutil"
 )
 
-func ContainsListAny(str string, a []interface{}) bool {
+func HasSuffixAny(str string, a []string) bool {
     for _, v := range a {
-        if strings.Contains(str, v.(string)) {
+        if strings.HasSuffix(str, v) {
+            return true;
+        }
+    }
+    return false;
+}
+func ContainsAny(str string, a []string) bool {
+    for _, v := range a {
+        if strings.Contains(str, v) {
             return true;
         }
     }
@@ -166,45 +173,35 @@ func main() {
         log.Fatal(err)
     }
     url := config["url"].(string)
+    focus := [...]string{".doc", ".xls"}
     for {
-        pairs := config["pairs"].([]interface{})
-        for i, pair := range pairs {
-            p := pair.(map[string]interface{})
-            tf := "ModTimeTable." + strconv.Itoa(i)
-            ign := p["ignore"].([]interface{})
-            n := len(ign)
-            ign = ign[0:n+1]
-            ign[n] = tf
-            err := ReadTime(tf, &d)
-            if err != nil {
-                log.Fatal(err)
-            }
-            root := p["root_client"].(string)
-            filepath.Walk(root, func (path string, info os.FileInfo, err error) error {
-                if err != nil {
-                    log.Println(err)
-                    return nil
-                }
-                idir := info.IsDir()
-                if !idir && !ContainsListAny(path, ign) {
-                    if d[path] != info.ModTime() {
-                        d[path] = info.ModTime()
-                        dir := filepath.Dir(path)
-                        rela := dir[len(root):]
-                        ur := strings.Replace(rela, "\\", "/", 200)
-                        dest := p["root_server"].(string) + ur
-                        Upload(url, path, dest)
-                    }
-                }
-                return nil
-            })
-            
-            err = WriteTime(tf, d)
-            if err != nil {
-                log.Fatal(err)
-            }
-            time.Sleep(1000 * time.Millisecond)
-            fmt.Print("\rsleep ", time.Now().Sub(t))
+        tf := "ModTimeTable"
+        err := ReadTime(tf, &d)
+        if err != nil {
+            log.Fatal(err)
         }
+        root := "d:"
+        filepath.Walk(root, func (path string, info os.FileInfo, err error) error {
+            if err != nil {
+                log.Println(err)
+                return nil
+            }
+            idir := info.IsDir()
+            if !idir && HasSuffixAny(path, focus[:]) {
+                if d[path] != info.ModTime() {
+                    d[path] = info.ModTime()
+                    dest := "/home/users/wangxiaochi/test/file-sync"
+                    Upload(url, path, dest)
+                }
+            }
+            return nil
+        })
+        
+        err = WriteTime(tf, d)
+        if err != nil {
+            log.Fatal(err)
+        }
+        time.Sleep(1000 * time.Millisecond)
+        fmt.Print("\rsleep ", time.Now().Sub(t))
     }
 }
