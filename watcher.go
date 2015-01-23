@@ -63,7 +63,7 @@ func GetConfig() (map[string]interface{}, error) {
     err = ReadJson("config.user.json", &c)
     return c, nil
 }
-func readTime(path string, t *map[string]time.Time) (error) {
+func ReadTime(path string, t *map[string]time.Time) (error) {
     file, err := os.Open(path)
     if err != nil {
         return nil
@@ -82,7 +82,7 @@ func readTime(path string, t *map[string]time.Time) (error) {
     return nil
 }
 
-func writeTime(path string, d map[string]time.Time) error {
+func WriteTime(path string, d map[string]time.Time) error {
     j, err := json.Marshal(d)
     if err != nil {
         return err
@@ -175,7 +175,7 @@ func main() {
             n := len(ign)
             ign = ign[0:n+1]
             ign[n] = tf
-            err := readTime(tf, &d)
+            err := ReadTime(tf, &d)
             if err != nil {
                 log.Fatal(err)
             }
@@ -199,7 +199,7 @@ func main() {
                 return nil
             })
             
-            err = writeTime(tf, d)
+            err = WriteTime(tf, d)
             if err != nil {
                 log.Fatal(err)
             }
