@@ -12,6 +12,9 @@ import (
     "log"
     "path/filepath"
     "strconv"
+    "mime/multipart"
+    "net/http"
+    "io/ioutil"
 )
 
 func ContainsListAny(str string, a []string) bool {
@@ -95,8 +98,65 @@ func writeTime(path string, d map[string]time.Time) error {
     fmt.Fprint(w, s)
     return w.Flush()
 }
-func upload(path string, dest string) {
-    fmt.Println("from", path, "to", dest)
+func Upload(url string, file string, dest string) (err error) {
+    fmt.Println("from", file, "to", dest)
+    // Prepare a form that you will submit to that URL.
+    var b bytes.Buffer
+    w := multipart.NewWriter(&b)
+    // Add your file
+    f, err := os.Open(file)
+    if err != nil {
+        return
+    }
+    fw, err := w.CreateFormFile("f", file)
+    if err != nil {
+        return
+    }
+    if _, err = io.Copy(fw, f); err != nil {
+        return
+    }
+    // Add the other fields
+    if fw, err = w.CreateFormField("dest"); err != nil {
+        return
+    }
+    if _, err = fw.Write([]byte(dest)); err != nil {
+        return
+    }
+    if fw, err = w.CreateFormField("action"); err != nil {
+        return
+    }
+    if _, err = fw.Write([]byte("upload_file")); err != nil {
+        return
+    }
+    // Don't forget to close the multipart writer.
+    // If you don't close it, your request will be missing the terminating boundary.
+    w.Close()
+
+    // Now that you have a form, you can submit it to your handler.
+    req, err := http.NewRequest("POST", url, &b)
+    if err != nil {
+        return
+    }
+    // Don't forget to set the content type, this will contain the boundary.
+    req.Header.Set("Content-Type", w.FormDataContentType())
+
+    // Submit the request
+    client := &http.Client{}
+    res, err := client.Do(req)
+    if err != nil {
+        return
+    }
+
+    // Check the response
+    if res.StatusCode != http.StatusOK {
+        err = fmt.Errorf("bad status: %s", res.Status)
+    }
+    body, err := ioutil.ReadAll(res.Body)
+    if err != nil {
+        return
+    }
+    fmt.Println(bytes.NewBuffer(body).String())
+    return
 }
 func main() {
     t := time.Now()
@@ -105,6 +165,7 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
+    url := config["url"].(string)
     for {
         pairs := config["pairs"].([]interface{})
         for i, pair := range pairs {
@@ -122,14 +183,14 @@ func main() {
                     log.Println(err)
                     return nil
                 }
-                fmt.Println(info)
                 idir := info.IsDir()
                 if !idir && !ContainsListAny(path, a[:]) {
                     if d[path] != info.ModTime() {
-                        fmt.Println("upload", path)
                         d[path] = info.ModTime()
-                        dest := p["root_server"].(string) + path[len(root):]
-                        upload(path, dest)
+                        rela := path[len(root):]
+                        ur := strings.Replace(rela, "\\", "/", 200)
+                        dest := p["root_server"].(string) + ur
+                        Upload(url, path, dest)
                     }
                 }
                 return nil
