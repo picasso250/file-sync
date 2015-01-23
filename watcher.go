@@ -11,16 +11,16 @@ import (
     "bufio"
     "log"
     "path/filepath"
-    "strconv"
+    // "strconv"
     "mime/multipart"
     "net/http"
     "io/ioutil"
-    "flag"
+    // "flag"
 )
 
-func ContainsListAny(str string, a []interface{}) bool {
+func ContainsListAny(str string, a []string) bool {
     for _, v := range a {
-        if strings.Contains(str, v.(string)) {
+        if strings.Contains(str, v) {
             return true;
         }
     }
@@ -163,39 +163,51 @@ func Upload(url string, file string, dest string) (err error) {
 // watcher -d <server_url> <watching_dir> <dest_dir>
 func main() {
     
-    t := time.Now()
-    var d = map[string]time.Time{}
-    var deamon = flag.Int("deamon", false, "run forever")
-    var url = flag.String("server_url", false, "server address, use http")
-    var root_client = flag.String("watching_dir", false, "server address, use http")
-    var root_server = flag.String("dest_dir", false, "server address, use http")
+    if len(os.Args) < 3 {
+        fmt.Println("Usage: watcher [-d] <server_url> <watching_dir> <dest_dir>")
+        return
+    }
+    i := 1
+    var deamon = false
+    if os.Args[1] == "-d" {
+        i++
+        deamon = true
+    }
 
-    for {
-        p := pair.(map[string]interface{})
-        tf := "ModTimeTable." + strconv.Itoa(i)
-        ign := p["ignore"].([]interface{})
+    var url = os.Args[i]; i++
+    var watching_dir = os.Args[i]; i++
+    var dest_dir = os.Args[i]; i++
+    var ignore = [...]string{}
+    var ign []string
+    if len(os.Args) != i {
+        ign = ignore[:]
         n := len(ign)
         ign = ign[0:n+1]
-        ign[n] = tf
+        ign[n] = os.Args[i]
+    }
+    var d = map[string]time.Time{}
+    t := time.Now()
+
+    for {
+        tf := "ModTimeTable"
         err := ReadTime(tf, &d)
         if err != nil {
             log.Fatal(err)
         }
-        root := p["root_client"].(string)
+        root := watching_dir
         filepath.Walk(root, func (path string, info os.FileInfo, err error) error {
             if err != nil {
                 log.Println(err)
                 return nil
             }
             idir := info.IsDir()
-            if !idir && !ContainsListAny(path, ign) {
+            if !idir && !ContainsListAny(path, ign[:]) {
                 if d[path] != info.ModTime() {
                     d[path] = info.ModTime()
                     dir := filepath.Dir(path)
                     rela := dir[len(root):]
                     ur := strings.Replace(rela, "\\", "/", 200)
-                    dest := p["root_server"].(string) + ur
-                    Upload(url, path, dest)
+                    Upload(url, path, dest_dir+"/"+ur)
                 }
             }
             return nil
@@ -204,6 +216,9 @@ func main() {
         err = WriteTime(tf, d)
         if err != nil {
             log.Fatal(err)
+        }
+        if !deamon {
+            break
         }
         time.Sleep(1000 * time.Millisecond)
         fmt.Print("\rsleep ", time.Now().Sub(t))
