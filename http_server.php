@@ -11,8 +11,7 @@ $action();
 function upload_file()
 {
     assert(isset($_REQUEST['dest']));
-    $dirname = $_REQUEST['dest'];
-
+    $dirname = __DIR__.'/data/'.date('Ymd').'/'.$_SERVER['REMOTE_ADDR']."/$_REQUEST[dest]";
     if (is_file($dirname)) {
         echo 'Error: ', $dirname, ' is not dir', "\n";
         exit;
@@ -37,9 +36,9 @@ function save_to_dir($dirname)
         if ($f['error']) {
             die("upload error $f[error]");
         }
-        $filename = "$dirname/$f[name]";
-        echo "save to $filename ";
         $tmp_name = $f['tmp_name'];
+        $filename = iconv('GBK', 'UTF-8', "$dirname/$f[name]");
+        echo "save to $filename ";
         echo move_uploaded_file($tmp_name, $filename) ? 'ok' : 'fail';
         echo "\n";
     }

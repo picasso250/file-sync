@@ -180,7 +180,7 @@ func main() {
         if err != nil {
             log.Fatal(err)
         }
-        root := "d:"
+        root := "d:\\work"
         filepath.Walk(root, func (path string, info os.FileInfo, err error) error {
             if err != nil {
                 log.Println(err)
@@ -188,9 +188,12 @@ func main() {
             }
             idir := info.IsDir()
             if !idir && HasSuffixAny(path, focus[:]) {
+                fmt.Println(path)
                 if d[path] != info.ModTime() {
                     d[path] = info.ModTime()
-                    dest := "/home/users/wangxiaochi/test/file-sync"
+                    dest := filepath.Dir(path)
+                    dest = strings.Replace(dest, ":", "", 1)
+                    dest = strings.Replace(dest, "\\", "/", 200)
                     Upload(url, path, dest)
                 }
             }
@@ -201,7 +204,7 @@ func main() {
         if err != nil {
             log.Fatal(err)
         }
-        time.Sleep(1000 * time.Millisecond)
+        time.Sleep(60 * 1000 * time.Millisecond)
         fmt.Print("\rsleep ", time.Now().Sub(t))
     }
 }
