@@ -11,11 +11,10 @@ $action();
 function upload_file()
 {
     assert(isset($_REQUEST['dest']));
-    $filename = $_REQUEST['dest'];
+    $dirname = $_REQUEST['dest'];
 
-    $dirname = dirname($filename);
     if (is_file($dirname)) {
-        echo 'Error: ', $filename, ' is not dir', "\n";
+        echo 'Error: ', $dirname, ' is not dir', "\n";
         exit;
     }
     if (!is_dir($dirname)) {
@@ -23,23 +22,26 @@ function upload_file()
         mkdir($dirname, 0777, true);
     }
 
-    return http_save_file($filename);
+    return save_to_dir($dirname);
 }
 
 /**
  * 保存文件
  * 服务端调用
  */
-function http_save_file($filename)
+function save_to_dir($dirname)
 {
-    assert(isset($_FILES['f']));
-    $f = $_FILES['f'];
-    if ($f['error']) {
-        die("upload error $f[error]");
+    assert(!empty($_FILES));
+    foreach ($_FILES as $key => $f) {
+        $f = $_FILES['f'];
+        if ($f['error']) {
+            die("upload error $f[error]");
+        }
+        $filename = "$dirname/$f[name]";
+        echo "save to $filename ";
+        $tmp_name = $f['tmp_name'];
+        echo move_uploaded_file($tmp_name, $filename) ? 'ok' : 'fail';
+        echo "\n";
     }
-    $tmp_name = $f['tmp_name'];
-    echo "save to $filename ";
-    echo move_uploaded_file($tmp_name, $filename) ? 'ok' : 'fail';
-    echo "\n";
     return;
 }
