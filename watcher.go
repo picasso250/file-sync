@@ -13,43 +13,6 @@ import (
     "log"
 )
 
-func FileMTime(file string) (int64, error) {
-    f, e := os.Stat(file)
-    if e != nil {
-        return 0, e
-    }
-    return f.ModTime().Unix(), nil
-}
-
-// get file size as how many bytes
-func FileSize(file string) (int64, error) {
-    f, e := os.Stat(file)
-    if e != nil {
-        return 0, e
-    }
-    return f.Size(), nil
-}
-
-// delete file
-func Unlink(file string) error {
-    return os.Remove(file)
-}
-
-// rename file name
-func Rename(file string, to string) error {
-    return os.Rename(file, to)
-}
-
-// put string to file
-func FilePutContent(file string, content string) (int, error) {
-    fs, e := os.Create(file)
-    if e != nil {
-        return 0, e
-    }
-    defer fs.Close()
-    return fs.WriteString(content)
-}
-
 func ContainsListAny(str string, a []string) bool {
     for _, v := range a {
         if strings.Contains(str, v) {
@@ -85,7 +48,6 @@ func writeTime(path string, d map[string]time.Time) error {
         return err
     }
     s := bytes.NewBuffer(j).String()
-    fmt.Println(s)
     file, err := os.Create(path)
     if err != nil {
         return err
@@ -96,21 +58,28 @@ func writeTime(path string, d map[string]time.Time) error {
     fmt.Fprint(w, s)
     return w.Flush()
 }
-
+func upload(path string, dest string) {
+    fmt.Println("from", path, "to", dest)
+}
 func main() {
-    a := [...]string{".git", ".idea"}
-    var d = map[string]time.Time{}
     tf := "ModTimeTable"
-    err := readTime(tf, &d)
-    if err != nil {
-        log.Fatal(err)
-    }
+    a := [...]string{".git", ".idea", tf}
+    t := time.Now()
+    var d = map[string]time.Time{}
     for {
-        filepath.Walk("D:\\file-sync", func (path string, info os.FileInfo, err error) error {
+        err := readTime(tf, &d)
+        if err != nil {
+            log.Fatal(err)
+        }
+        root := "D:\\file-sync"
+        filepath.Walk(root, func (path string, info os.FileInfo, err error) error {
             if !info.IsDir() && !ContainsListAny(path, a[:]) {
-                fmt.Println(path)
-                fmt.Println(info)
-                d[path] = info.ModTime()
+                if d[path] != info.ModTime() {
+                    fmt.Println("upload", path)
+                    d[path] = info.ModTime()
+                    dest := "/home/work" + path[len(root):]
+                    upload(path, dest)
+                }
             }
             return nil
         })
@@ -120,5 +89,6 @@ func main() {
             log.Fatal(err)
         }
         time.Sleep(1000 * time.Millisecond)
+        fmt.Print("\rsleep ", time.Now().Sub(t))
     }
 }
