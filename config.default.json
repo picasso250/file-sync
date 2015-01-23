@@ -1,7 +1,7 @@
 {
     "host": "127.0.0.1",
     "port": 5666,
-    "url": "http://remote.com/",
+    "url": "http://remote.com/http_server.php",
     "pairs": [
         {
             "root_server": "/home/work",
