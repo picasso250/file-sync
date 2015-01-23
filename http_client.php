@@ -15,7 +15,7 @@ while (true) {
     foreach ($pairs as $id => $pair) {
         $root = $pair['root_client'];
         $ignore = $pair['ignore'];
-        $changed = http_watch_dir($url, $id, $root, $ignore);
+        $changed = http_watch_dir($url, $root, $pair['root_server'], $ignore);
     }
     $sleep += $interval;
     if ($changed) {

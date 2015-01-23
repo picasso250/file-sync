@@ -8,7 +8,7 @@
  * @param $ignore array 忽略的文件
  * @return bool 是否被改变
  */
-function http_watch_dir($url, $id, $root, $ignore)
+function http_watch_dir($url, $root, $server_root, $ignore)
 {
     $changed = false;
 
@@ -46,7 +46,8 @@ function http_watch_dir($url, $id, $root, $ignore)
                     // big than 100M
                     echo "skip $filename with size $filesize\n";
                 } else {
-                    list($modify_table, $changed) = http_process_file($url, $id, $root, $modify_table, $filename, $changed);
+                    $relat_path = substr($filename, strlen($root));
+                    $changed = http_process_file($url, $filename, "$server_root/$relat_path", $changed);
                 }
             } elseif (is_dir($filename)) {
                 // echo "add to queue $filename\n";
@@ -72,43 +73,17 @@ function http_watch_dir($url, $id, $root, $ignore)
  * @param $socket
  * @return array
  */
-function http_process_file($url, $id, $root, $modify_table, $filename, $changed)
+function http_process_file($url, $filename, $dest, $changed)
 {
-    if (modify_time($filename) === null) {
-        $filemtime = filemtime($filename);
-        $modify_table = http_send_file_change($url, $id, $root, $filemtime, $modify_table, $filename);
-        return array($modify_table, true);
+    $mtime = modify_time($filename);
+    if ($mtime != ($filemtime = filemtime($filename))) {
+        modify_time($filename, $filemtime);
+        echo "send file $filename to $dest\n";
+        http_send_relet_file($url, $filename, $dest);
+        return true;
     } else {
-        $filemtime = filemtime($filename);
-        if (modify_time($filename) != $filemtime) {
-            $modify_table = http_send_file_change($url, $id, $root, $filemtime, $modify_table, $filename);
-            $changed = true;
-        } else {
-            // echo ".";
-        }
-        return array($modify_table, $changed);
+        return $changed;
     }
-}
-
-
-/**
- * 发送改变了的文件
- * @param $host
- * @param $port
- * @param $root
- * @param $filemtime
- * @param $modify_table
- * @param $filename
- * @param $socket
- * @return array
- */
-function http_send_file_change($url, $id, $root, $filemtime, $modify_table, $filename)
-{
-    modify_time($filename, $filemtime);
-    // echo "time diff $modify_table[$filename] $filemtime\n";
-    echo "send file $filename\n";
-    http_send_relet_file($url, $id, $root, $filename);
-    return $modify_table;
 }
 
 /**
@@ -117,20 +92,15 @@ function http_send_file_change($url, $id, $root, $filemtime, $modify_table, $fil
  * @param $root
  * @param $filename
  */
-function http_send_relet_file($url, $id, $root, $filename)
+function http_send_relet_file($url, $filename, $dest)
 {
-    if (strpos($filename, $root) !== 0) {
-        echo "Error: filename $filename, root $root not match\n";
-        return;
-    }
+    echo "send file $filename to $dest\n";
+    return;
     $ch = curl_init($url);
-    $relat_path = substr($filename, strlen($root)+1);
-    echo "relat_path $relat_path\n";
-    echo "send file $filename\n";
     $ctrl = array(
         'action' => 'upload_file',
-        'filename' => iconv('GBK', 'UTF-8', $relat_path),
-        'id' => $id,
+        'filename' => iconv('GBK', 'UTF-8', $filename),
+        'dest' => $dest,
         'f' => new CURLFile($filename),
     );
     $options = [
