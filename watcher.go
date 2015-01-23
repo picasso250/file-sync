@@ -57,8 +57,7 @@ func GetConfig() (map[string]interface{}, error) {
     if err != nil {
         return c, err
     }
-    fmt.Println(c)
-    // err = ReadJson("config.user.json", &c)
+    err = ReadJson("config.user.json", &c)
     return c, nil
 }
 func readTime(path string, t *map[string]time.Time) (error) {
@@ -75,7 +74,6 @@ func readTime(path string, t *map[string]time.Time) (error) {
         } else if err != nil {
             log.Fatal(err)
         }
-        // fmt.Printf("%s: %s\n", m.Name, m.Text)
     }
 
     return nil
@@ -104,14 +102,12 @@ func main() {
     t := time.Now()
     var d = map[string]time.Time{}
     config, err := GetConfig()
-    fmt.Println(config)
     if err != nil {
         log.Fatal(err)
     }
     for {
         pairs := config["pairs"].([]interface{})
         for i, pair := range pairs {
-            fmt.Println(i, pair)
             p := pair.(map[string]interface{})
             tf := "ModTimeTable." + strconv.Itoa(i)
             a := [...]string{".git", ".idea", tf}
@@ -120,10 +116,11 @@ func main() {
                 log.Fatal(err)
             }
             root := p["root_client"].(string)
-            fmt.Println("looking", root)
+            log.Println("looking", root)
             filepath.Walk(root, func (path string, info os.FileInfo, err error) error {
                 if err != nil {
-                    log.Fatal(err)
+                    log.Println(err)
+                    return nil
                 }
                 fmt.Println(info)
                 idir := info.IsDir()
