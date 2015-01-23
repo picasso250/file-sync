@@ -46,7 +46,7 @@ function http_watch_dir($url, $root, $server_root, $ignore)
                     // big than 100M
                     echo "skip $filename with size $filesize\n";
                 } else {
-                    $relat_path = substr($filename, strlen($root));
+                    $relat_path = substr(dirname($filename), strlen($root));
                     $changed = http_process_file($url, $filename, "$server_root/$relat_path", $changed);
                 }
             } elseif (is_dir($filename)) {
