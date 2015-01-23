@@ -180,7 +180,6 @@ func main() {
                 log.Fatal(err)
             }
             root := p["root_client"].(string)
-            log.Println("looking", root)
             filepath.Walk(root, func (path string, info os.FileInfo, err error) error {
                 if err != nil {
                     log.Println(err)
@@ -190,7 +189,8 @@ func main() {
                 if !idir && !ContainsListAny(path, ign) {
                     if d[path] != info.ModTime() {
                         d[path] = info.ModTime()
-                        rela := path[len(root):]
+                        dir := filepath.Dir(path)
+                        rela := dir[len(root):]
                         ur := strings.Replace(rela, "\\", "/", 200)
                         dest := p["root_server"].(string) + ur
                         Upload(url, path, dest)
