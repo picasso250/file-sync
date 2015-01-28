@@ -47,3 +47,5 @@ modify_time
 *.pyc
 test.txt
 lib/test_json.php
+watcher.exe
+ModTimeTable.0
