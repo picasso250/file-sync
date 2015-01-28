@@ -94,8 +94,6 @@ function http_process_file($url, $filename, $dest, $changed)
  */
 function http_send_relet_file($url, $filename, $dest)
 {
-    echo "send file $filename to $dest\n";
-    return;
     $ch = curl_init($url);
     $ctrl = array(
         'action' => 'upload_file',
