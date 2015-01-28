@@ -26,7 +26,8 @@ $RECYCLE.BIN/
 .LSOverride
 
 # Icon must ends with two \r.
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -47,5 +48,6 @@ modify_time
 *.pyc
 test.txt
 lib/test_json.php
-watcher.exe
-ModTimeTable.0
+
+*.exe
+ModTimeTable.*
