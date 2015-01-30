@@ -29,6 +29,9 @@ enum {
 #define WS_MATCHDIRS	(1 << 3)	/* if pattern is used on dir names too */
 
 int root_len;
+char ip[FILENAME_MAX];
+char dest[FILENAME_MAX];
+int port = 0;
 
 int walk_recur(const char *dname)
 {
@@ -76,7 +79,7 @@ int walk_recur(const char *dname)
 
 		if (hashtable_get(fn) != st.st_mtime)
 		{
-			printf("upload %s\n", fn+root_len+1);
+			printf("upload from %s to %s%s\n", fn, dest, fn+root_len+1);
 			char *new_fn = strdup(fn);
 			hashtable_set(new_fn, st.st_mtime);
 		}
@@ -95,12 +98,10 @@ int main(int argc, char const *argv[])
 		exit(EXIT_FAILURE);
 	}
 	printf("%s\n", "start");
-	char ip[FILENAME_MAX];
-	char dest[FILENAME_MAX];
+
 	char port_str[10];
 	const char *p = argv[1];
 	const char *port_begin = NULL;
-	int port = 0;
 	for (; *p; ++p)
 	{
 		if (*p == ':')
@@ -118,6 +119,7 @@ int main(int argc, char const *argv[])
 			strncpy(port_str, port_begin, p- port_begin);
 			port = atoi(port_str);
 			strcpy(dest, p);
+			break;
 		}
 	}
 	if (port == 0)
@@ -128,7 +130,6 @@ int main(int argc, char const *argv[])
 	printf("ip: %s\n", ip);
 	printf("port: %d\n", port);
 	printf("dest: %s\n", dest);
-	return 0;
 
 	root_len = strlen(argv[2]);
 	int r = walk_recur(argv[2]);
