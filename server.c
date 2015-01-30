@@ -5,6 +5,8 @@
 #include <resolv.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <errno.h>
+#include <err.h>
 
 #include "sock.c"
 
@@ -60,8 +62,6 @@ int mkdir_recur(char * filename)
 int main(int argc, char const *argv[])
 {
 	printf("%s\n", "start");
-	mkdir_recur("/home/u/he.txt");
-	return;
 	int sock;
 	sock = make_socket(8081);
 	if (listen(sock, 5) < 0)
@@ -96,9 +96,15 @@ int main(int argc, char const *argv[])
 			send_int(new_fd, st.st_size);
 		}
 		int size = recv_int(new_fd);
+		printf("%d bytes follow\n", size);
 		if (size > 0)
 		{
-			recv_file(sock, dest, size);
+			if (recv_file(sock, dest, size) < 0) {
+				perror("recv_file");
+				close(new_fd);
+				close(sock);
+				exit(EXIT_FAILURE);
+			}
 		}
 		close(new_fd);
 		break;

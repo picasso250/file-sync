@@ -13,6 +13,7 @@ void send_all(int sock, char * s, size_t len)
 	while (len > 0)
 	{
 		int i = send(sock, s, len, 0);
+		printf("send %d\n", len);
 		s += i;
 		len -= i;
 	}
@@ -58,6 +59,7 @@ int send_file(int sock, char * fn)
 	int len;
 	while ((len = read(f, buf, FILE_BUF_SIZE)) > 0)
 	{
+		printf("send_file, read %d\n", len);
 		send_all(sock, buf, len);
 	}
 	close(f);
@@ -74,18 +76,34 @@ void write_all(int file, char * s, size_t len)
 }
 int recv_file(int sock, char * fn, int size)
 {
-	char buf[FILE_BUF_SIZE];
-	int f = open(fn, O_WRONLY);
+	int f = open(fn, O_WRONLY | O_CREAT);
 	if (f < 0)
 	{
 		return f;
 	}
+	fcntl(sock, F_SETFL, O_NONBLOCK);
 	int len;
-	while (size > 0 && (len = recv(sock, buf, FILE_BUF_SIZE, 0)) > 0)
+	char buf[FILE_BUF_SIZE];
+	printf("start recv %d\n", FILE_BUF_SIZE);
+	while (size > 0)
 	{
+		len = recv(sock, buf, FILE_BUF_SIZE, 0);
+		if (len == -1)
+		{
+			if (errno == EAGAIN)
+			{
+				printf("EAGAIN\n");
+				continue;
+			}
+			return len;
+		}
+		if (len == 0)
+			return len;
+		printf("recv_file, read %d\n", len);
 		write_all(f, buf, len);
 		size -= len;
 	}
+	printf("end recv\n");
 	close(f);
 	return len;
 }
