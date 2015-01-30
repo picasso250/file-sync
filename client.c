@@ -27,8 +27,10 @@ enum {
 #define WS_FOLLOWLINK	(1 << 1)	/* follow symlinks */
 #define WS_DOTFILES	(1 << 2)	/* per unix convention, .file is hidden */
 #define WS_MATCHDIRS	(1 << 3)	/* if pattern is used on dir names too */
- 
-int walk_recur(char *dname)
+
+int root_len;
+
+int walk_recur(const char *dname)
 {
 	struct dirent *dent;
 	DIR *dir;
@@ -60,12 +62,6 @@ int walk_recur(char *dname)
 			res = WALK_BADIO;
 			continue;
 		}
-		if (hashtable_get(fn) != st.st_mtime)
-		{
-			printf("upload %s\n", fn);
-			char *new_fn = strdup(fn);
-			hashtable_set(new_fn, st.st_mtime);
-		}
  
 		/* don't follow symlink unless told so */
 		if (S_ISLNK(st.st_mode))
@@ -75,6 +71,14 @@ int walk_recur(char *dname)
 		if (S_ISDIR(st.st_mode)) {
 			/* recursively follow dirs */
 			walk_recur(fn);
+			continue;
+		}
+
+		if (hashtable_get(fn) != st.st_mtime)
+		{
+			printf("upload %s\n", fn+root_len+1);
+			char *new_fn = strdup(fn);
+			hashtable_set(new_fn, st.st_mtime);
 		}
 	}
  
@@ -84,9 +88,46 @@ int walk_recur(char *dname)
 
 int main(int argc, char const *argv[])
 {
+	char *usage = "Usage: %s ip:port/dest from\n";
+	if (argc < 3)
+	{
+		printf(usage, argv[0]);
+		exit(EXIT_FAILURE);
+	}
 	printf("%s\n", "start");
-	int r = walk_recur(".");
-	hashtable_print();
+	char ip[FILENAME_MAX];
+	char dest[FILENAME_MAX];
+	char port_str[10];
+	const char *p = argv[1];
+	const char *port_begin = NULL;
+	int port;
+	while (*p)
+	{
+		if (*p == ':')
+		{
+			strncpy(ip, argv[1], p - argv[1]);
+			port_begin = p+1;
+		}
+		else if (*p == '/')
+		{
+			if (port_begin == NULL)
+			{
+				perror("no :");
+				exit(EXIT_FAILURE);
+			}
+			strncpy(port_str, port_begin, p- port_begin);
+			port = atoi(port_str);
+			strcpy(dest, p);
+		}
+	}
+	printf("ip: %s\n", ip);
+	printf("port: %d\n", port);
+	printf("dest: %s\n", dest);
+	return 0;
+
+	root_len = strlen(argv[2]);
+	int r = walk_recur(argv[2]);
+	// hashtable_print();
 	return 0;
 	int sock;
 	sock = socket (PF_INET, SOCK_STREAM, 0);
@@ -97,8 +138,8 @@ int main(int argc, char const *argv[])
     }
 	struct sockaddr_in dest_addr;
 	dest_addr.sin_family=AF_INET;/*hostbyteorder*/
-	dest_addr.sin_port=htons(DEST_PORT);/*short,network byte order*/
-	dest_addr.sin_addr.s_addr=inet_addr(DEST_IP);
+	dest_addr.sin_port=htons(port);/*short,network byte order*/
+	dest_addr.sin_addr.s_addr=inet_addr(ip);
 	bzero(&(dest_addr.sin_zero),8);/*zero the rest of the struct*/
 	/*don'tforgettoerrorchecktheconnect()!*/
 	if (connect(sock, (struct sockaddr*)&dest_addr, sizeof(struct sockaddr)) < 0)
