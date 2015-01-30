@@ -100,8 +100,8 @@ int main(int argc, char const *argv[])
 	char port_str[10];
 	const char *p = argv[1];
 	const char *port_begin = NULL;
-	int port;
-	while (*p)
+	int port = 0;
+	for (; *p; ++p)
 	{
 		if (*p == ':')
 		{
@@ -119,6 +119,11 @@ int main(int argc, char const *argv[])
 			port = atoi(port_str);
 			strcpy(dest, p);
 		}
+	}
+	if (port == 0)
+	{
+		printf(usage, argv[0]);
+		exit(EXIT_FAILURE);
 	}
 	printf("ip: %s\n", ip);
 	printf("port: %d\n", port);
