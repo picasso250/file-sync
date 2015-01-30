@@ -79,7 +79,7 @@ int walk_recur(const char *dname)
 
 		if (hashtable_get(fn) != st.st_mtime)
 		{
-			printf("upload from %s to %s%s\n", fn, dest, fn+root_len+1);
+			printf("upload from %s to %s%s\n", fn, dest, fn+root_len);
 			char *new_fn = strdup(fn);
 			hashtable_set(new_fn, st.st_mtime);
 		}
@@ -116,7 +116,7 @@ int main(int argc, char const *argv[])
 				perror("no :");
 				exit(EXIT_FAILURE);
 			}
-			strncpy(port_str, port_begin, p- port_begin);
+			strncpy(port_str, port_begin, p - port_begin);
 			port = atoi(port_str);
 			strcpy(dest, p);
 			break;
