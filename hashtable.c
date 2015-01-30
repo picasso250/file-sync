@@ -10,7 +10,7 @@ hash(unsigned char *str)
     return hash;
 }
 
-#define HASH_TABLE_LEN 2
+#define HASH_TABLE_LEN 512
 struct hash_list_node {
 	char * key;
 	int value;
