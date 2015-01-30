@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <errno.h>
 #include <err.h>
+#include <regex.h>
 
 #define DEST_IP "127.0.0.1"
 #define DEST_PORT 8081
@@ -32,6 +33,21 @@ int root_len;
 char ip[FILENAME_MAX];
 char dest[FILENAME_MAX];
 int port = 0;
+int ignore_c = 0;
+char const * ignore_v[10];
+
+int is_ignore(char * fn)
+{
+	int i;
+	for (i = 0; i < ignore_c; ++i)
+	{
+		if (strcmp(fn, ignore_v[i]) == 0)
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
 
 int walk_recur(const char *dname)
 {
@@ -58,6 +74,10 @@ int walk_recur(const char *dname)
 			continue;
 		if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
 			continue;
+		if (is_ignore(dent->d_name))
+		{
+			continue;
+		}
  		
 		strncpy(fn + len, dent->d_name, FILENAME_MAX - len);
 		if (lstat(fn, &st) == -1) {
@@ -130,6 +150,25 @@ int main(int argc, char const *argv[])
 	printf("ip: %s\n", ip);
 	printf("port: %d\n", port);
 	printf("dest: %s\n", dest);
+
+	int i = 2;
+	while (i < argc)
+	{
+		if (strcmp("--ignore", argv[i]) == 0)
+		{
+			i++;
+			if (i < argc)
+			{
+				printf("we will ignore %s\n", argv[i]);
+				ignore_v[ignore_c++] = argv[i];
+			} else {
+				perror("ignore what?");
+				exit(EXIT_FAILURE);
+			}
+		}
+		i++;
+	}
+	return 0;
 
 	root_len = strlen(argv[2]);
 	int r = walk_recur(argv[2]);
