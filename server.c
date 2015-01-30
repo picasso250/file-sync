@@ -37,18 +37,24 @@ make_socket (uint16_t port)
 int mkdir_recur(char * filename)
 {
 	struct stat st;
-	char *p = filename;
+	char *p = filename+1;
 	for (; *p; p++)
 	{
 		if (*p == '/')
 		{
-			char * dir = strndup(filename, p - filename);
+			int len = p - filename;
+			char * dir = malloc((len+1) * sizeof(char));
+			strncpy(dir, filename, len);
+			dir[len] = '\0';
 			if (lstat(dir, &st) == -1) {
+				printf("mkdir %s\n", dir);
 				int ret;
 				if (ret = mkdir(dir, 0777)) {
+					free(dir);
 					return ret;
 				}
 			}
+			free(dir);
 		}
 	}
 	return 0;
@@ -56,6 +62,8 @@ int mkdir_recur(char * filename)
 int main(int argc, char const *argv[])
 {
 	printf("%s\n", "start");
+	mkdir_recur("/home/u/he.txt");
+	return;
 	int sock;
 	sock = make_socket(8081);
 	if (listen(sock, 5) < 0)
