@@ -49,6 +49,11 @@ int is_ignore(char * fn)
 	return 0;
 }
 
+void upload(char * fn, char * dest)
+{
+
+}
+
 int walk_recur(const char *dname)
 {
 	struct dirent *dent;
@@ -99,7 +104,11 @@ int walk_recur(const char *dname)
 
 		if (hashtable_get(fn) != st.st_mtime)
 		{
-			printf("upload from %s to %s%s\n", fn, dest, fn+root_len);
+			char dest_fn[FILENAME_MAX];
+			strcpy(dest_fn, dest);
+			strncpy(dest_fn+strlen(dest), fn+root_len, strlen(fn+root_len)+1);
+			printf("upload from %s to %s\n", fn, dest_fn);
+			upload(fn, dest_fn);
 			char *new_fn = strdup(fn);
 			hashtable_set(new_fn, st.st_mtime);
 		}
@@ -170,6 +179,7 @@ int parse_arg(int argc, char const *argv[]) {
 	printf("port: %d\n", port);
 	printf("dest: %s\n", dest);
 
+	root_len = strlen(argv[2]);
 	return parse_ignore(argc, argv);
 }
 
@@ -181,7 +191,6 @@ int main(int argc, char const *argv[])
 		exit(ret);
 	}
 
-	root_len = strlen(argv[2]);
 	int r = walk_recur(argv[2]);
 	// hashtable_print();
 	return 0;
