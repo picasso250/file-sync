@@ -38,23 +38,21 @@ int mkdir_recur(char * filename)
 {
 	struct stat st;
 	char *p = filename+1;
+	char dir[FILENAME_MAX];
 	for (; *p; p++)
 	{
 		if (*p == '/')
 		{
 			int len = p - filename;
-			char * dir = malloc((len+1) * sizeof(char));
 			strncpy(dir, filename, len);
 			dir[len] = '\0';
 			if (lstat(dir, &st) == -1) {
 				printf("mkdir %s\n", dir);
 				int ret;
 				if (ret = mkdir(dir, 0777)) {
-					free(dir);
 					return ret;
 				}
 			}
-			free(dir);
 		}
 	}
 	return 0;
