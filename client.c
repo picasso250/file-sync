@@ -54,13 +54,17 @@ int walk_recur(char *dname)
 		if (!strcmp(dent->d_name, ".") || !strcmp(dent->d_name, ".."))
 			continue;
  		
- 		printf("%s\n", dent->d_name);
 		strncpy(fn + len, dent->d_name, FILENAME_MAX - len);
-		printf("-> %s\n", fn);
 		if (lstat(fn, &st) == -1) {
 			warn("Can't stat %s", fn);
 			res = WALK_BADIO;
 			continue;
+		}
+		if (hashtable_get(fn) != st.st_mtime)
+		{
+			printf("upload %s\n", fn);
+			char *new_fn = strdup(fn);
+			hashtable_set(new_fn, st.st_mtime);
 		}
  
 		/* don't follow symlink unless told so */
@@ -82,6 +86,7 @@ int main(int argc, char const *argv[])
 {
 	printf("%s\n", "start");
 	int r = walk_recur(".");
+	hashtable_print();
 	return 0;
 	int sock;
 	sock = socket (PF_INET, SOCK_STREAM, 0);

@@ -71,3 +71,20 @@ void hashtable_set(char *key, int value)
 		p = p->next;
 	}
 }
+void hashtable_print()
+{
+	int i;
+	for (i = 0; i< HASH_TABLE_LEN; i++)
+	{
+		struct hash_list_node * node;
+		if (list[i])
+		{
+			node = list[i];
+			while(node)
+			{
+				printf("%s -> %d\n", node->key, node->value);
+				node = node->next;
+			}
+		}
+	}
+}

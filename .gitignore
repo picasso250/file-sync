@@ -51,3 +51,4 @@ lib/test_json.php
 
 *.exe
 ModTimeTable.*
+*.stackdump
