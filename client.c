@@ -109,13 +109,32 @@ int walk_recur(const char *dname)
 	return res ? res : errno ? WALK_BADIO : WALK_OK;
 }
 
-int main(int argc, char const *argv[])
-{
+int parse_ignore(int argc, char const *argv[]) {
+	int i = 2;
+	while (i < argc)
+	{
+		if (strcmp("--ignore", argv[i]) == 0)
+		{
+			i++;
+			if (i < argc)
+			{
+				printf("we will ignore %s\n", argv[i]);
+				ignore_v[ignore_c++] = argv[i];
+			} else {
+				perror("ignore what?");
+				return (EXIT_FAILURE);
+			}
+		}
+		i++;
+	}
+	return 0;
+}
+int parse_arg(int argc, char const *argv[]) {
 	char *usage = "Usage: %s ip:port/dest from\n";
 	if (argc < 3)
 	{
 		printf(usage, argv[0]);
-		exit(EXIT_FAILURE);
+		return (EXIT_FAILURE);
 	}
 	printf("%s\n", "start");
 
@@ -134,7 +153,7 @@ int main(int argc, char const *argv[])
 			if (port_begin == NULL)
 			{
 				perror("no :");
-				exit(EXIT_FAILURE);
+				return (EXIT_FAILURE);
 			}
 			strncpy(port_str, port_begin, p - port_begin);
 			port = atoi(port_str);
@@ -145,30 +164,22 @@ int main(int argc, char const *argv[])
 	if (port == 0)
 	{
 		printf(usage, argv[0]);
-		exit(EXIT_FAILURE);
+		return (EXIT_FAILURE);
 	}
 	printf("ip: %s\n", ip);
 	printf("port: %d\n", port);
 	printf("dest: %s\n", dest);
 
-	int i = 2;
-	while (i < argc)
+	return parse_ignore(argc, argv);
+}
+
+int main(int argc, char const *argv[])
+{
+	int ret;
+	if ((ret = parse_arg(argc, argv)) != 0)
 	{
-		if (strcmp("--ignore", argv[i]) == 0)
-		{
-			i++;
-			if (i < argc)
-			{
-				printf("we will ignore %s\n", argv[i]);
-				ignore_v[ignore_c++] = argv[i];
-			} else {
-				perror("ignore what?");
-				exit(EXIT_FAILURE);
-			}
-		}
-		i++;
+		exit(ret);
 	}
-	return 0;
 
 	root_len = strlen(argv[2]);
 	int r = walk_recur(argv[2]);
