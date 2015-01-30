@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 #include <resolv.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+
+#include "sock.c"
 
 int
 make_socket (uint16_t port)
@@ -31,6 +34,25 @@ make_socket (uint16_t port)
 
   return sock;
 }
+int mkdir_recur(char * filename)
+{
+	struct stat st;
+	char *p = filename;
+	for (; *p; p++)
+	{
+		if (*p == '/')
+		{
+			char * dir = strndup(filename, p - filename);
+			if (lstat(dir, &st) == -1) {
+				int ret;
+				if (ret = mkdir(dir, 0777)) {
+					return ret;
+				}
+			}
+		}
+	}
+	return 0;
+}
 int main(int argc, char const *argv[])
 {
 	printf("%s\n", "start");
@@ -51,9 +73,27 @@ int main(int argc, char const *argv[])
 			perror ("accept");
 			exit (EXIT_FAILURE);
 		}
-		char * s = "helloz";
-		printf("send: %s\n", s);
-		send(new_fd, s, strlen(s), 0);
+
+		char dest[FILENAME_MAX];
+		recv_str(new_fd, dest, FILENAME_MAX);
+		printf("dest: %s\n", dest);
+		struct stat st;
+		if (lstat(dest, &st) == -1) {
+			send_int(new_fd, 0);
+			if (mkdir_recur(dest)) {
+				perror("mkdir_recur");
+				close(new_fd);
+				close(sock);
+				exit(EXIT_FAILURE);
+			}
+		} else {
+			send_int(new_fd, st.st_size);
+		}
+		int size = recv_int(new_fd);
+		if (size > 0)
+		{
+			recv_file(sock, dest, size);
+		}
 		close(new_fd);
 		break;
 	}

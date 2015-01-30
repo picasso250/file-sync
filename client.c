@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 #include <dirent.h>
 #include <resolv.h>
 #include <sys/types.h>
@@ -8,10 +9,6 @@
 #include <sys/socket.h>
 #include <errno.h>
 #include <err.h>
-#include <fcntl.h>
-
-#define DEST_IP "127.0.0.1"
-#define DEST_PORT 8081
 
 #include "hashtable.c"
 #include "sock.c"
@@ -22,13 +19,6 @@ enum {
 	WALK_NAMETOOLONG,
 	WALK_BADIO,
 };
-
-#define WS_NONE		0
-#define WS_RECURSIVE	(1 << 0)
-#define WS_DEFAULT	WS_RECURSIVE
-#define WS_FOLLOWLINK	(1 << 1)	/* follow symlinks */
-#define WS_DOTFILES	(1 << 2)	/* per unix convention, .file is hidden */
-#define WS_MATCHDIRS	(1 << 3)	/* if pattern is used on dir names too */
 
 int root_len;
 char ip[FILENAME_MAX];
@@ -48,24 +38,6 @@ int is_ignore(char * fn)
 		}
 	}
 	return 0;
-}
-
-#define FILE_BUF_SIZE 256
-int send_file(int sock, char * fn, size_t size)
-{
-	char buf[FILE_BUF_SIZE];
-	int f = open(fn, O_RDONLY);
-	if (f < 0)
-	{
-		return f;
-	}
-	int len;
-	while ((len = read(f, buf, FILE_BUF_SIZE)) > 0)
-	{
-		send_all(sock, buf, len);
-	}
-	close(f);
-	return len;
 }
 
 void upload(char * fn, char * dest, off_t size)
@@ -88,14 +60,15 @@ void upload(char * fn, char * dest, off_t size)
 		perror ("connect");
 		exit (EXIT_FAILURE);
 	}
-	send_all(sock, dest, strlen(dest)); // filename
+	send_all(sock, dest, strlen(dest)+1); // filename
 	int remote_size = recv_int(sock);
 	if (remote_size == size)
 	{
+		send_int(sock, 0); // file size
 		return;
 	}
-	send_int(sock, size);
-	if (send_file(sock, fn, size) < 0)
+	send_int(sock, size); // file size
+	if (send_file(sock, fn) < 0)
 	{
 		perror("send file");
 		exit(EXIT_FAILURE);
