@@ -1,13 +1,17 @@
 upload() {
-	for file in $1/*
+	cd $1
+	for file in ./*
 	do
 		echo $file
 		if [[ -d $file ]]; then
-			upload $file
+			cd $file
+			upload . $2/$file
 		else
-			curl -F "f=@$file" -F "action=upload_file" -F "dest=/var/www" http://localhost/http_server.php
+			curl -F "f=@$file" -F "action=upload_file" -F "dest=$2/$1" http://localhost/http_server.php
 		fi
 	done
+	cd ..
 }
 
-upload $1
+echo send $1 to $2
+upload $1 $2 # source dest
