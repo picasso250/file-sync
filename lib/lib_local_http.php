@@ -54,6 +54,7 @@ function http_watch_dir($url, $root, $server_root, $ignore)
                 $queue[] = "$filename";
             }
         }
+        save_modify_time(modify_time());
     }
     $t += microtime(true);
     echo " ($root " . intval($t*1000) . " ms)";
