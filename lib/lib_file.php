@@ -23,7 +23,7 @@ function is_text_file($filename)
  */
 function load_modify_time()
 {
-    $f = __DIR__.'/modify_time'.$GLOBALS['id'];
+    $f = modify_time_file();
     if (is_file($f)) {
         return json_decode(file_get_contents($f), true) ?: array();
     }
@@ -37,6 +37,12 @@ function load_modify_time()
  */
 function save_modify_time($modify_table)
 {
-    $f = __DIR__.'/modify_time'.$GLOBALS['id'];
+    $f = modify_time_file();
     return file_put_contents($f, json_encode($modify_table));
+}
+
+function modify_time_file()
+{
+    $f = __DIR__.'/modify_time_'.sha1(serialize($GLOBALS['config']));
+    return $f;
 }
