@@ -51,7 +51,6 @@ func Upload(path string, root string, dest string, url_ string) {
 
 func LoadModify(path string) (map[string]time.Time, error) {
   modify := make(map[string]time.Time)
-  fmt.Printf("file exists; processing...")
   data, err := ioutil.ReadFile(path)
   if err != nil {
     return nil, err
@@ -82,7 +81,6 @@ func main() {
   modify := make(map[string]time.Time)
   if _, err := os.Stat(mfile); err == nil {
     modify, err = LoadModify(mfile)
-    fmt.Printf("load modify %v\n", modify)
     if err != nil {
       log.Fatal(err)
     }
@@ -91,7 +89,6 @@ func main() {
     if err != nil {
       log.Fatal(err)
     }
-    fmt.Printf("process %s\n", path)
     if IsIgnore(info.Name(), ign) {
       fmt.Printf("skip %s\n", path)
       if info.IsDir() {
@@ -104,13 +101,11 @@ func main() {
       if *remember {
         t, ok := modify[path]
         if ok {
-          fmt.Printf("key %s\n", path)
           if t.Before(info.ModTime()) {
             modify[path] = info.ModTime()
             Upload(path, *root, *dest, *url_)
           }
         } else {
-          fmt.Printf("no key %s\n", path)
           modify[path] = info.ModTime()
           Upload(path, *root, *dest, *url_)
         }
