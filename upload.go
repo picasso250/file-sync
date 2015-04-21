@@ -10,6 +10,7 @@ import "net/url"
 import "net/http"
 import "io/ioutil"
 import "path/filepath"
+import "encoding/json"
 
 func UploadFile(file string, dest string, url_ string) {
   data, err := ioutil.ReadFile(file)
@@ -51,32 +52,38 @@ func main() {
   var url_ = flag.String("url", "http://localhost/http_server.php", "server script url")
   var dest = flag.String("dest", ".", "a dir where to put files")
   var root = flag.String("root", ".", "local dir")
-  var ignore = flag.String("ignore", ".git", "local dir")
+  var ignore = flag.String("ignore", ".git;modify.json", "local dir")
   var remember = flag.Bool("m", false, "remember what have transfered, only diff")
   flag.Parse()
   fmt.Printf("from %s to %s:%s\n\n", *root, *url_, *dest)
   ign := strings.Split(*ignore, ";")
-  fmt.Printf("ignore %v\n", ign)
+  fmt.Printf("ignore %v\n\n", ign)
   modify := make(map[string]time.Time)
-  filepath.Walk(*root, func (path string, info os.FileInfo, err error) error {
+  err := filepath.Walk(*root, func (path string, info os.FileInfo, err error) error {
     if err != nil {
       log.Fatal(err)
     }
     fmt.Printf("process %s\n", path)
     if IsIgnore(info.Name(), ign) {
       fmt.Printf("skip %s\n", path)
-      return filepath.SkipDir
+      if info.IsDir() {
+        return filepath.SkipDir
+      } else {
+        return nil
+      }
     }
     if path != "." && !info.IsDir() {
       fmt.Printf("upload %s\n", path)
       if *remember {
         t, ok := modify[path]
         if ok {
+          fmt.Printf("key %s\n", path)
           if t.Before(info.ModTime()) {
             modify[path] = info.ModTime()
             Upload(path, *root, *dest, *url_)
           }
         } else {
+          fmt.Printf("no key %s\n", path)
           modify[path] = info.ModTime()
           Upload(path, *root, *dest, *url_)
         }
@@ -84,6 +91,19 @@ func main() {
         Upload(path, *root, *dest, *url_)
       }
     }
+    b, err := json.Marshal(modify)
+    if err != nil {
+      fmt.Printf("Marshal")
+      log.Fatal(err)
+    }
+    err = ioutil.WriteFile(*root+"/modify.json", b, 0644)
+    if err != nil {
+      fmt.Printf("WriteFile")
+      log.Fatal(err)
+    }
     return nil
   })
+  if err != nil {
+    log.Fatal(err)
+  }
 }
