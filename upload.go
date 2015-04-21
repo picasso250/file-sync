@@ -36,7 +36,7 @@ func main() {
   var url_ = flag.String("url", "http://localhost/http_server.php", "server script url")
   var dest = flag.String("dest", ".", "a dir where to put files")
   var root = flag.String("root", ".", "local dir")
-  fmt.Printf(*dest)
+  flag.Parse()
   filepath.Walk(*root, func (path string, info os.FileInfo, err error) error {
     if err != nil {
       log.Fatal(err)
