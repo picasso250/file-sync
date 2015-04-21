@@ -129,7 +129,7 @@ func main() {
       log.Fatal(err)
     }
     if *watch {
-      fmt.Printf("Sleep 1s\n")
+      fmt.Printf("Sleep 0.5 s\n")
       time.Sleep(500 * time.Millisecond)
     } else {
       break
