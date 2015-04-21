@@ -4,6 +4,7 @@ import "os"
 import "fmt"
 import "log"
 import "flag"
+import "time"
 import "strings"
 import "net/url"
 import "net/http"
@@ -41,15 +42,22 @@ func IsIgnore(name string, ign []string) bool {
   return false
 }
 
+func Upload(path string, root string, dest string, url_ string) {
+  name := strings.TrimPrefix(path, root)
+  UploadFile(path, dest+name, url_)
+}
+
 func main() {
   var url_ = flag.String("url", "http://localhost/http_server.php", "server script url")
   var dest = flag.String("dest", ".", "a dir where to put files")
   var root = flag.String("root", ".", "local dir")
   var ignore = flag.String("ignore", ".git", "local dir")
+  var remember = flag.Bool("m", false, "remember what have transfered, only diff")
   flag.Parse()
   fmt.Printf("from %s to %s:%s\n\n", *root, *url_, *dest)
   ign := strings.Split(*ignore, ";")
   fmt.Printf("ignore %v\n", ign)
+  modify := make(map[string]time.Time)
   filepath.Walk(*root, func (path string, info os.FileInfo, err error) error {
     if err != nil {
       log.Fatal(err)
@@ -61,9 +69,20 @@ func main() {
     }
     if path != "." && !info.IsDir() {
       fmt.Printf("upload %s\n", path)
-      name := strings.TrimPrefix(path, *root)
-      fmt.Printf("root=%s, path=%s, name=%s\n", *root, path, name)
-      UploadFile(path, *dest+name, *url_)
+      if *remember {
+        t, ok := modify[path]
+        if ok {
+          if t.Before(info.ModTime()) {
+            modify[path] = info.ModTime()
+            Upload(path, *root, *dest, *url_)
+          }
+        } else {
+          modify[path] = info.ModTime()
+          Upload(path, *root, *dest, *url_)
+        }
+      } else {
+        Upload(path, *root, *dest, *url_)
+      }
     }
     return nil
   })
