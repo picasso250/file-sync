@@ -9,7 +9,7 @@ file-sync
 将 `http_server.php` 放在服务器上。
 在本地命令行执行 `go run upload.go`
 
-用法
+本地选项
 
 ```
   -url    required, server script url like "http://domamin/http_server.php"
