@@ -11,6 +11,17 @@ $action();
 function upload_file()
 {
     assert(isset($_REQUEST['dest']));
+    if (isset($_POST['format'])) {
+        assert(isset($_POST['data']));
+        $path = str_replace('\\', '/', $_POST['dest']);
+        $dir = dirname($path);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+        $n = file_put_contents($path, $_POST['data']);
+        echo "save $path $n";
+        return;
+    }
     $dirname = $_REQUEST['dest'];
 
     if (is_file($dirname)) {
@@ -31,18 +42,6 @@ function upload_file()
  */
 function save_to_dir($dirname)
 {
-    if (isset($_POST['format'])) {
-        assert(!empty($_POST['file_name']));
-        assert(isset($_POST['data']));
-        $path = (str_replace('\\', '/', "$dirname/$_POST[file_name]"));
-        $dir = dirname($path);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
-        }
-        $n = file_put_contents($path, $_POST['data']);
-        echo "save $path $n";
-        return;
-    }
     assert(!empty($_FILES));
     foreach ($_FILES as $key => $f) {
         $f = $_FILES['f'];

@@ -10,14 +10,13 @@ import "net/http"
 import "io/ioutil"
 import "path/filepath"
 
-func upload(file string, dest string, url_ string) {
+func UploadFile(file string, dest string, url_ string) {
   data, err := ioutil.ReadFile(file)
   if err != nil {
     log.Fatal(err)
   }
   vals := url.Values{}
   vals.Set("action", "upload_file")
-  vals.Set("file_name", (file))
   vals.Set("format", "base64")
   vals.Set("dest", dest)
   vals.Set("data", string(data[:len(data)]))
@@ -62,7 +61,9 @@ func main() {
     }
     if path != "." && !info.IsDir() {
       fmt.Printf("upload %s\n", path)
-      upload(path, *dest, *url_)
+      name := strings.TrimPrefix(path, *root)
+      fmt.Printf("root=%s, path=%s, name=%s\n", *root, path, name)
+      UploadFile(path, *dest+name, *url_)
     }
     return nil
   })
