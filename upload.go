@@ -73,6 +73,7 @@ func main() {
   var root = flag.String("root", ".", "local dir")
   var ignore = flag.String("ignore", ".git;modify.json", "local dir")
   var remember = flag.Bool("m", false, "remember what have transfered, only diff")
+  var watch = flag.Bool("w", false, "see if file change")
   flag.Parse()
   fmt.Printf("from %s to %s:%s\n\n", *root, *url_, *dest)
   ign := strings.Split(*ignore, ";")
@@ -85,41 +86,49 @@ func main() {
       log.Fatal(err)
     }
   }
-  err := filepath.Walk(*root, func (path string, info os.FileInfo, err error) error {
-    if err != nil {
-      log.Fatal(err)
-    }
-    if IsIgnore(info.Name(), ign) {
-      fmt.Printf("skip %s\n", path)
-      if info.IsDir() {
-        return filepath.SkipDir
-      } else {
-        return nil
+  for {
+    err := filepath.Walk(*root, func (path string, info os.FileInfo, err error) error {
+      if err != nil {
+        log.Fatal(err)
       }
-    }
-    if path != "." && !info.IsDir() {
-      if *remember {
-        t, ok := modify[path]
-        if ok {
-          if t.Before(info.ModTime()) {
+      if IsIgnore(info.Name(), ign) {
+        fmt.Printf("skip %s\n", path)
+        if info.IsDir() {
+          return filepath.SkipDir
+        } else {
+          return nil
+        }
+      }
+      if path != "." && !info.IsDir() {
+        if *remember {
+          t, ok := modify[path]
+          if ok {
+            if t.Before(info.ModTime()) {
+              modify[path] = info.ModTime()
+              Upload(path, *root, *dest, *url_)
+            }
+          } else {
             modify[path] = info.ModTime()
             Upload(path, *root, *dest, *url_)
           }
         } else {
-          modify[path] = info.ModTime()
           Upload(path, *root, *dest, *url_)
         }
-      } else {
-        Upload(path, *root, *dest, *url_)
       }
-    }
-    err = SaveModify(modify, mfile)
+      err = SaveModify(modify, mfile)
+      if err != nil {
+        log.Fatal(err)
+      }
+      return nil
+    })
     if err != nil {
       log.Fatal(err)
     }
-    return nil
-  })
-  if err != nil {
-    log.Fatal(err)
+    if *watch {
+      fmt.Printf("Sleep 1s\n")
+      time.Sleep(500 * time.Millisecond)
+    } else {
+      break
+    }
   }
 }
