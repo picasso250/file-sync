@@ -44,6 +44,7 @@ func IsIgnore(name string, ign []string) bool {
 }
 
 func Upload(path string, root string, dest string, url_ string) {
+  fmt.Printf("Upload %s\n", path)
   name := strings.TrimPrefix(path, root)
   UploadFile(path, dest+name, url_)
 }
@@ -58,6 +59,15 @@ func LoadModify(path string) (map[string]time.Time, error) {
   err = json.Unmarshal(data, &modify)
   return modify, err
 }
+func SaveModify(modify map[string]time.Time, path string) error {
+  b, err := json.Marshal(modify)
+  if err != nil {
+    return err
+  }
+  err = ioutil.WriteFile(path, b, 0644)
+  return err
+}
+
 func main() {
   var url_ = flag.String("url", "http://localhost/http_server.php", "server script url")
   var dest = flag.String("dest", ".", "a dir where to put files")
@@ -91,7 +101,6 @@ func main() {
       }
     }
     if path != "." && !info.IsDir() {
-      fmt.Printf("upload %s\n", path)
       if *remember {
         t, ok := modify[path]
         if ok {
@@ -109,14 +118,8 @@ func main() {
         Upload(path, *root, *dest, *url_)
       }
     }
-    b, err := json.Marshal(modify)
+    err = SaveModify(modify, mfile)
     if err != nil {
-      fmt.Printf("Marshal")
-      log.Fatal(err)
-    }
-    err = ioutil.WriteFile(mfile, b, 0644)
-    if err != nil {
-      fmt.Printf("WriteFile")
       log.Fatal(err)
     }
     return nil
