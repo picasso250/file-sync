@@ -82,6 +82,11 @@ func main() {
   var remember = flag.Bool("m", false, "remember what have transfered, only diff")
   var watch = flag.Bool("w", false, "see if file change")
   flag.Parse()
+  if len(*url_) == 0 {
+    fmt.Printf("upload file to server")
+    flag.PrintDefaults()
+    os.Exit(1)
+  }
   fmt.Printf("from %s to %s:%s\n\n", *root, *url_, *dest)
   ign := strings.Split(*ignore, ";")
   fmt.Printf("ignore %v\n\n", ign)
