@@ -43,6 +43,6 @@ function save_modify_time($modify_table)
 
 function modify_time_file()
 {
-    $f = __DIR__.'/modify_time_'.sha1(serialize($GLOBALS['config']));
+    $f = __DIR__.'/modify_time_'.($GLOBALS['id']);
     return $f;
 }

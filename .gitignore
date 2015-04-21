@@ -14,6 +14,9 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 
+# Windows shortcuts
+*.lnk
+
 # =========================
 # Operating System Files
 # =========================
@@ -25,10 +28,6 @@ $RECYCLE.BIN/
 .AppleDouble
 .LSOverride
 
-# Icon must ends with two \r.
-Icon
-
-
 # Thumbnails
 ._*
 
@@ -36,19 +35,15 @@ Icon
 .Spotlight-V100
 .Trashes
 
-client/test.txt
-server/text.txt
-client/a/z.txt
-client/text.txt
-server/a/z.txt
-config.user.json
-modify_time
-.idea
-*.log
-*.pyc
-test.txt
-lib/test_json.php
-
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
 *.exe
-ModTimeTable.*
 lib/modify_time*
+.idea
+data
+config.user.json
+*.pyc
