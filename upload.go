@@ -48,6 +48,16 @@ func Upload(path string, root string, dest string, url_ string) {
   UploadFile(path, dest+name, url_)
 }
 
+func LoadModify(path string) (map[string]time.Time, error) {
+  modify := make(map[string]time.Time)
+  fmt.Printf("file exists; processing...")
+  data, err := ioutil.ReadFile(path)
+  if err != nil {
+    return nil, err
+  }
+  err = json.Unmarshal(data, &modify)
+  return modify, err
+}
 func main() {
   var url_ = flag.String("url", "http://localhost/http_server.php", "server script url")
   var dest = flag.String("dest", ".", "a dir where to put files")
@@ -58,7 +68,15 @@ func main() {
   fmt.Printf("from %s to %s:%s\n\n", *root, *url_, *dest)
   ign := strings.Split(*ignore, ";")
   fmt.Printf("ignore %v\n\n", ign)
+  mfile := *root+"/modify.json"
   modify := make(map[string]time.Time)
+  if _, err := os.Stat(mfile); err == nil {
+    modify, err = LoadModify(mfile)
+    fmt.Printf("load modify %v\n", modify)
+    if err != nil {
+      log.Fatal(err)
+    }
+  }
   err := filepath.Walk(*root, func (path string, info os.FileInfo, err error) error {
     if err != nil {
       log.Fatal(err)
@@ -96,7 +114,7 @@ func main() {
       fmt.Printf("Marshal")
       log.Fatal(err)
     }
-    err = ioutil.WriteFile(*root+"/modify.json", b, 0644)
+    err = ioutil.WriteFile(mfile, b, 0644)
     if err != nil {
       fmt.Printf("WriteFile")
       log.Fatal(err)
