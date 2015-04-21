@@ -58,6 +58,13 @@ func LoadModify(path string) (map[string]time.Time, error) {
   err = json.Unmarshal(data, &modify)
   return modify, err
 }
+func LoadModifyOpt(path string) (map[string]time.Time, error) {
+  modify := make(map[string]time.Time)
+  if _, err := os.Stat(path); err == nil {
+    return LoadModify(path)
+  }
+  return modify, nil
+}
 func SaveModify(modify map[string]time.Time, path string) error {
   b, err := json.Marshal(modify)
   if err != nil {
@@ -79,12 +86,9 @@ func main() {
   ign := strings.Split(*ignore, ";")
   fmt.Printf("ignore %v\n\n", ign)
   mfile := *root+"/modify.json"
-  modify := make(map[string]time.Time)
-  if _, err := os.Stat(mfile); err == nil {
-    modify, err = LoadModify(mfile)
-    if err != nil {
-      log.Fatal(err)
-    }
+  modify, err := LoadModifyOpt(mfile)
+  if err != nil {
+    log.Fatal(err)
   }
   for {
     err := filepath.Walk(*root, func (path string, info os.FileInfo, err error) error {
