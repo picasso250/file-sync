@@ -9,8 +9,10 @@ file-sync
 将 `http_server.php` 放在服务器上。
 在本地命令行执行 `go run upload.go`
 
+用法
+
 ```
-  -url    server script url like "http://domamin/http_server.php"
+  -url    required, server script url like "http://domamin/http_server.php"
   -dest   a dir where to put files like "."
   -root   local dir like "."
   -ignore file or dir you want to ignore, separated by ";" like ".get;.svn"
