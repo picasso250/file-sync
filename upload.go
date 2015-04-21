@@ -75,10 +75,10 @@ func SaveModify(modify map[string]time.Time, path string) error {
 }
 
 func main() {
-  var url_ = flag.String("url", "http://localhost/http_server.php", "server script url")
+  var url_ = flag.String("url", "", "server script url")
   var dest = flag.String("dest", ".", "a dir where to put files")
   var root = flag.String("root", ".", "local dir")
-  var ignore = flag.String("ignore", ".git;modify.json", "local dir")
+  var ignore = flag.String("ignore", ".git;modify.json", "file or dir you want to ignore, separated by ';'")
   var remember = flag.Bool("m", false, "remember what have transfered, only diff")
   var watch = flag.Bool("w", false, "see if file change")
   flag.Parse()

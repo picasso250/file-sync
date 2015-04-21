@@ -1,49 +1,19 @@
 file-sync
 =========
 
-将本地的文件实时（每隔1秒）的传到服务器上的指定目录。
-
-原理
-------
-每隔一秒，检测本地文件的mtime，如有变化，传到服务器。服务器开端口监听。将收到的文件写入指定位置。
+将本地的文本文件传到服务器上的指定目录。
 
 用法
 ------
 
-在服务器上打开 `server.php` 。在本地打开 `watcher.php` 或 `watcher.py`
-
-`watcher.py`需要python3才能使用。
-
-配置
--------
-
-`config.default.json` 使用json格式
-
-你也可以使用 `config.user.json` 文件，此文件中的配置会覆盖 `config.default.json`
-
-```json
-{
-    "host": "127.0.0.1", // 监听的IP
-    "port": 5666,        // 端口
-    "pairs": [ // 支持多个服务器-客户端文件夹的配对
-        {
-            "root_server": "/home/work", // 服务器的根目录
-            "root_client": "D:/work", // 客户端的监视的根目录
-            "ignore": [".git", ".svn", ".idea"] // 忽略的文件或者文件夹
-        }
-    ]
-}
+将 `http_server.php` 放在服务器上。
+在本地命令行执行 `go run upload.go`
 
 ```
-
-协议
--------
-
-一个32位的大端序的数字，表示接下来头部的长度，接下来头部以json编码。
-头部中的 `data-size` 表示接下来身体的长度。
-
-更新
-------
-
-- 2014年8月8日 支持多个服务器-客户端文件夹的配对
-
+  -url    server script url like "http://domamin/http_server.php"
+  -dest   a dir where to put files like "."
+  -root   local dir like "."
+  -ignore file or dir you want to ignore, separated by ";" like ".get;.svn"
+  -m      remember what have transfered, so the next time will transfer changed file only
+  -w      see if file change every 0.5 s, must use with -m
+```
