@@ -70,7 +70,17 @@ func SaveModify(modify map[string]time.Time, path string) error {
   if err != nil {
     return err
   }
-  err = ioutil.WriteFile(path, b, 0644)
+  err = ioutil.WriteFile(path+".tmp", b, 0644)
+  if err != nil {
+    return err
+  }
+  if _, err := os.Stat(path); err == nil {
+    err = os.Remove(path)
+    if err != nil {
+      return err
+    }
+  }
+  err = os.Rename(path+".tmp", path)
   return err
 }
 
@@ -83,7 +93,7 @@ func main() {
   var watch = flag.Bool("w", false, "see if file change")
   flag.Parse()
   if len(*url_) == 0 {
-    fmt.Printf("upload file to server")
+    fmt.Printf("upload file to server\n")
     flag.PrintDefaults()
     os.Exit(1)
   }
@@ -115,18 +125,22 @@ func main() {
             if t.Before(info.ModTime()) {
               modify[path] = info.ModTime()
               Upload(path, *root, *dest, *url_)
+              err = SaveModify(modify, mfile)
+              if err != nil {
+                log.Fatal(err)
+              }
             }
           } else {
             modify[path] = info.ModTime()
             Upload(path, *root, *dest, *url_)
+            err = SaveModify(modify, mfile)
+            if err != nil {
+              log.Fatal(err)
+            }
           }
         } else {
           Upload(path, *root, *dest, *url_)
         }
-      }
-      err = SaveModify(modify, mfile)
-      if err != nil {
-        log.Fatal(err)
       }
       return nil
     })
