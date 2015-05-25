@@ -1,6 +1,7 @@
 package main
 
 import "os"
+import "io"
 import "fmt"
 import "log"
 import "flag"
@@ -9,6 +10,7 @@ import "strings"
 import "net/url"
 import "net/http"
 import "io/ioutil"
+import "crypto/md5"
 import "path/filepath"
 import "encoding/json"
 
@@ -84,6 +86,13 @@ func SaveModify(modify map[string]time.Time, path string) error {
   return err
 }
 
+func GetModifyFileName(url_ string, dest string, root string) string {
+  h := md5.New()
+  io.WriteString(h, url_)
+  io.WriteString(h, dest)
+  io.WriteString(h, root)
+  return fmt.Sprintf("%s%x%s", "d:/tmp/", h.Sum(nil), "_modify.json")
+}
 func main() {
   var url_ = flag.String("url", "", "server script url")
   var dest = flag.String("dest", ".", "a dir where to put files")
@@ -100,7 +109,8 @@ func main() {
   fmt.Printf("from %s to %s:%s\n\n", *root, *url_, *dest)
   ign := strings.Split(*ignore, ";")
   fmt.Printf("ignore %v\n\n", ign)
-  mfile := *root+"/modify.json"
+  mfile := GetModifyFileName(*url_, *dest, *root)
+  fmt.Printf("data file %s\n", mfile)
   modify, err := LoadModifyOpt(mfile)
   if err != nil {
     log.Fatal(err)
