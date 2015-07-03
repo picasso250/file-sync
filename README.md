@@ -13,9 +13,9 @@ file-sync
 
 ```
   -url    required, server script url like "http://domamin/http_server.php"
-  -dest   a dir where to put files like "."
-  -root   local dir like "."
+  -dest   required, a dir where to put files like "."
+  -root   required, local dir like "."
   -ignore file or dir you want to ignore, separated by ";" like ".get;.svn"
-  -m      remember what have transfered, so the next time will transfer changed file only
-  -w      see if file change every 0.5 s, must use with -m
+  -m      remember what have transfered, so next time only changed files will be transfered
+  -w      see if file changes every 0.5 s, must used with -m
 ```

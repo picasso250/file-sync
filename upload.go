@@ -91,15 +91,15 @@ func GetModifyFileName(url_ string, dest string, root string) string {
   io.WriteString(h, url_)
   io.WriteString(h, dest)
   io.WriteString(h, root)
-  return fmt.Sprintf("%s%x%s", "d:/tmp/", h.Sum(nil), "_modify.json")
+  return fmt.Sprintf("%s%x%s", "d:/temp/", h.Sum(nil), "_modify.json")
 }
 func main() {
   var url_ = flag.String("url", "", "server script url")
   var dest = flag.String("dest", ".", "a dir where to put files")
   var root = flag.String("root", ".", "local dir")
   var ignore = flag.String("ignore", ".git;modify.json", "file or dir you want to ignore, separated by ';'")
-  var remember = flag.Bool("m", false, "remember what have transfered, only diff")
-  var watch = flag.Bool("w", false, "see if file change")
+  var remember = flag.Bool("m", false, "remember what have transfered, so next time only changed files will be transfered")
+  var watch = flag.Bool("w", false, "see if file changes every 0.5 s, must used with -m")
   flag.Parse()
   if len(*url_) == 0 {
     fmt.Printf("upload file to server\n")
@@ -121,7 +121,7 @@ func main() {
         log.Fatal(err)
       }
       if IsIgnore(info.Name(), ign) {
-        fmt.Printf("skip %s\n", path)
+        fmt.Printf("skip %s\r", path)
         if info.IsDir() {
           return filepath.SkipDir
         } else {
@@ -158,7 +158,7 @@ func main() {
       log.Fatal(err)
     }
     if *watch {
-      fmt.Printf("Sleep 0.5 s\n")
+      fmt.Printf("Sleep 0.5 s\r")
       time.Sleep(500 * time.Millisecond)
     } else {
       break
