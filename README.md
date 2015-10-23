@@ -8,7 +8,10 @@ file-sync
 
 1. 将 `http_server.php` 放在服务器上。并使其web服务可用。
 2. 下载`upload.exe` 下载地址为 `http://zhihu233.top:8081/upload.exe`
-3. 在本地命令行执行 `upload.exe -url http://example.com/http_server.php" -root D:\code -dest "/var/www"
+3. 在本地命令行执行
+ ```
+ upload.exe -url http://example.com/http_server.php" -root D:\code -dest "/var/www"
+ ```
 
 非Windows系统
 ------------
