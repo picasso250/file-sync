@@ -91,7 +91,7 @@ func GetModifyFileName(url_ string, dest string, root string) string {
   io.WriteString(h, url_)
   io.WriteString(h, dest)
   io.WriteString(h, root)
-  return fmt.Sprintf("%s%x%s", "d:/temp/", h.Sum(nil), "_modify.json")
+  return fmt.Sprintf("%s%x%s", os.TempDir(), h.Sum(nil), "_modify.json")
 }
 func main() {
   var url_ = flag.String("url", "", "server script url")
