@@ -14,10 +14,13 @@ import "bufio"
 import "io/ioutil"
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	if len(os.Args) <= 1 {
 		fmt.Printf("Usage: %s <port>\n", os.Args[0])
 		return
 	}
+
 	port := os.Args[1]
 	ln, err := net.Listen("tcp", ":"+port)
 	handle_error(err)
@@ -26,6 +29,7 @@ func main() {
 		conn, err := ln.Accept()
 		handle_error(err)
 		fmt.Println("handleConnection")
+		// handleConnection(conn)
 		go handleConnection(conn)
 	}
 }
@@ -36,20 +40,32 @@ type Response struct {
 func handleConnection(conn net.Conn) {
 	for {
 		rd := bufio.NewReader(conn)
-		hjrd := NewReader(rd)
+		hjrd := NewReader(rd) // hyper json reader
 		header := hjrd.ReadHeader()
+		fmt.Printf("recieve %+v\n", header)
+
+		cc, ok := header["cc"] // connection close
+		if ok && cc.(bool) == true {
+			fmt.Println("connection close")
+			break;
+		}
+
 		fp, ok := header["fp"] // file path
 		if !ok {
 			log.Fatal("no fp(file path)")
 		}
-		cl, ok := header["cl"] // content-length
+		rcl, ok := header["cl"] // content-length, raw
 		if !ok {
 			log.Fatal("no cl (content-length)")
 		}
-		if cl.(int) != 0 {
-			bf := hjrd.ReadBody(cl.(int))
+		cl := int(rcl.(float64))
+		if cl != 0 {
+			bf := hjrd.ReadBody(cl)
+			fmt.Printf("file: %s put content:\n%s\n", fp.(string), string(bf))
 			err := ioutil.WriteFile(fp.(string), bf, os.ModePerm)
-			handle_error(err)
+			if err != nil {
+				log.Fatal(err)
+			} 
 		}
 		wt := bufio.NewWriter(conn)
 		w := NewWriter(wt)
@@ -57,10 +73,6 @@ func handleConnection(conn net.Conn) {
 			"code": 0,
 		}
 		w.WriteHeader(res)
-		cc, ok := header["cc"] // connection close
-		if ok && cc.(bool) == true {
-			break;
-		}
 	}
 	conn.Close()
 }

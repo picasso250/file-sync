@@ -1,5 +1,6 @@
 package main
 
+// import "fmt"
 import "bufio"
 import "encoding/json"
 
@@ -22,7 +23,7 @@ func (b *Reader) ReadHeader() (header map[string]interface{}) {
 }
 func (b *Reader) ReadBody(n int) (bf []byte) {
 	bf = make([]byte, n)
-	for len(bf) < n {
+	for i:= 0; i < n; i++ {
 		c, err := b.rd.ReadByte()
 		handle_error(err)
 		bf = append(bf, c)
@@ -56,9 +57,10 @@ func (wt *Writer) WriteHeader(header map[string]interface{}) {
 	err = wt.wt.Flush()
 	handle_error(err)
 }
-func (wt *Writer) WriteBody(b []byte) {
-	_, err := wt.wt.Write(b)
+func (wt *Writer) WriteBody(b []byte) (int) {
+	n, err := wt.wt.Write(b)
 	handle_error(err)
 	err = wt.wt.Flush()
 	handle_error(err)
+	return n
 }

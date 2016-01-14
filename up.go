@@ -30,29 +30,31 @@ type Uploader struct {
 	root     string
 	ignore   []string
 	ftt      *FileTimeTable
+	remember bool
 
 	conn *net.TCPConn
 	rd   *Reader
 	wt   *Writer
 }
 
-func NewUploader(hostport string, dest string, root string, ignore []string, ftt *FileTimeTable) *Uploader {
+func NewUploader(hostport string, dest string, root string, ignore []string, ftt *FileTimeTable, remember bool) *Uploader {
 	r := new(Uploader)
-	r.reset(hostport, dest, root, ignore, ftt)
+	r.reset(hostport, dest, root, ignore, ftt, remember)
 	return r
 }
 func (u *Uploader) Cwd(path string) *Uploader {
 	dest := u.dest + "/" + path
 	root := u.root + "/" + path
-	return NewUploader(u.hostport, dest, root, u.ignore, u.ftt)
+	return NewUploader(u.hostport, dest, root, u.ignore, u.ftt, u.remember)
 }
-func (u *Uploader) reset(hostport string, dest string, root string, ignore []string, ftt *FileTimeTable) {
+func (u *Uploader) reset(hostport string, dest string, root string, ignore []string, ftt *FileTimeTable, remember bool) {
 	*u = Uploader{
 		hostport: hostport,
 		dest:     dest,
 		root:     root,
 		ignore:   ignore,
 		ftt:      ftt,
+		remember: remember,
 	}
 }
 func (u *Uploader) Upload() {
@@ -71,16 +73,26 @@ func (u *Uploader) Upload() {
 			nu := u.Cwd(fi.Name())
 			go nu.Upload()
 		} else {
-			t := fi.ModTime()
-			if u.ftt.IsBefore(fi.Name(), t) {
-				fmt.Printf("upload %s\n", fi.Name())
-				u.upload_file(u.root+"/"+fi.Name(), u.dest+"/"+fi.Name())
+			fn := u.root + "/" + fi.Name()
+			if u.remember {
+				t := fi.ModTime()
+				if u.ftt.IsBefore(fn, t) {
+					fmt.Printf("upload %s\n", fi.Name())
+					u.upload_file(fn, u.dest+"/"+fi.Name())
+					defer u.Close()
+				}
+			} else {
+				u.upload_file(fn, u.dest+"/"+fi.Name())
 				defer u.Close()
 			}
 		}
 	}
 }
 func (u *Uploader) Close() {
+	header := make(map[string]interface{})
+	header["cc"] = true
+	fmt.Printf("send close %+v\n", header)
+	u.wt.WriteHeader(header)
 	u.conn.Close()
 }
 func (u *Uploader) upload_file(src string, dest string) {
@@ -89,19 +101,23 @@ func (u *Uploader) upload_file(src string, dest string) {
 	u.ensure_dial()
 
 	b, err := ioutil.ReadFile(src)
+	fmt.Printf("read file %s:\n%s\n", src, string(b))
 	handle_error(err)
 	header := make(map[string]interface{})
 	header["fp"] = dest
 	header["cl"] = len(b)
+	fmt.Printf("send %+v\n", header)
 	u.wt.WriteHeader(header)
-	u.wt.WriteBody(b)
+	n := u.wt.WriteBody(b)
+	fmt.Printf("write %d\n", n)
 
 	resp := u.rd.ReadHeader()
-	code, ok := resp["code"]
-	if ok && code.(int) == 0 {
+	coderaw, ok := resp["code"] // code raw
+	code := int(coderaw.(float64))
+	if ok && code == 0 {
 		return
 	} else {
-		log.Fatal("code not 0, but" + strconv.Itoa(code.(int)))
+		log.Fatal("code not 0, but" + strconv.Itoa(code))
 	}
 }
 func (u *Uploader) ensure_dial() {
@@ -160,7 +176,7 @@ func (ftt *FileTimeTable) IsBefore(fn string, t time.Time) (r bool) {
 	switch {
 	case err == sql.ErrNoRows:
 		fmt.Println("insert")
-		stmt, err = tx.Prepare("insert into file_time_data(t, name) values(?, ?)")
+		stmt, err = tx.Prepare("INSERT into file_time_data(t, name) values(?, ?)")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -172,7 +188,7 @@ func (ftt *FileTimeTable) IsBefore(fn string, t time.Time) (r bool) {
 		fmt.Println("maybe upload")
 		if r {
 			fmt.Println("upload")
-			stmt, err = tx.Prepare("update file_time_data set t=? where name=?")
+			stmt, err = tx.Prepare("UPDATE file_time_data set t=? where name=?")
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -189,19 +205,41 @@ func (ftt *FileTimeTable) IsBefore(fn string, t time.Time) (r bool) {
 	}
 	return r
 }
+func (ftt *FileTimeTable) ShowAll() {
+	s := "SELECT t,name from file_time_data"
+	rows, err := ftt.db.Query(s)
+	handle_error(err)
+	defer rows.Close()
+	for rows.Next() {
+		var t time.Time
+		var name string
+		rows.Scan(&t, &name)
+		fmt.Println(t, name)
+	}
+}
 func (ftt *FileTimeTable) Close() {
 	ftt.db.Close()
 }
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	var url_ = flag.String("url", "", "server script url")
 	var dest = flag.String("dest", ".", "a dir where to put files")
 	var root = flag.String("root", ".", "local dir")
 	var ignore = flag.String("ignore", ".git;modify.json", "file or dir you want to ignore, separated by ';'")
-	// var remember = flag.Bool("m", false, "remember what have transfered, so next time only changed files will be transfered")
+	var remember = flag.Bool("m", false, "remember what have transfered, so next time only changed files will be transfered")
 	var watch = flag.Bool("w", false, "see if file changes every 0.5 s, must used with -m")
+	var show_data = flag.Bool("sd", false, "see debug data info")
 	flag.Parse()
+
+	ftt := NewFileTimeTable()
+	defer ftt.Close()
+	if *show_data {
+		ftt.ShowAll()
+		return
+	}
+
 	if len(*url_) == 0 {
 		fmt.Printf("upload file to server\n")
 		flag.PrintDefaults()
@@ -211,11 +249,8 @@ func main() {
 	ign := strings.Split(*ignore, ";")
 	fmt.Printf("ignore %v\n\n", ign)
 
-	ftt := NewFileTimeTable()
-	defer ftt.Close()
-
 	for {
-		up := NewUploader(*url_, *dest, *root, ign, ftt)
+		up := NewUploader(*url_, *dest, *root, ign, ftt, *remember)
 		up.Upload()
 		if *watch {
 			fmt.Printf("Sleep 0.5 s\r")
