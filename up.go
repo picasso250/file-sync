@@ -11,8 +11,7 @@ import "strings"
 import "strconv"
 import "io/ioutil"
 import (
-	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/tadvi/rkv"
 )
 
 func IsIgnore(name string, ign []string) bool {
@@ -132,27 +131,14 @@ func (u *Uploader) ensure_dial() {
 }
 
 type FileTimeTable struct {
-	db *sql.DB
+	db *rkv.Rkv
 }
 
 func NewFileTimeTable() *FileTimeTable {
 	db_file := "./file_time_data.db"
-	first_time := false
-	if _, err := os.Stat(db_file); os.IsNotExist(err) {
-		first_time = true
-	}
-	db, err := sql.Open("sqlite3", db_file)
+	db, err := rkv.New(db_file)
 	if err != nil {
 		log.Fatal(err)
-	}
-	if first_time {
-		sqlStmt := `
-        create table file_time_data (
-            name text not null primary key,
-            t TimeStamp);
-        `
-		_, err = db.Exec(sqlStmt)
-		handle_error(err)
 	}
 	ftt := new(FileTimeTable)
 	*ftt = FileTimeTable{
@@ -162,21 +148,14 @@ func NewFileTimeTable() *FileTimeTable {
 }
 
 func (ftt *FileTimeTable) IsBefore(fn string, t time.Time) (r bool) {
-	tx, err := ftt.db.Begin()
-	if err != nil {
-		log.Fatal(err)
-	}
 	r = false
 	var oldt time.Time // old time
-	s := "SELECT t from file_time_data WHERE name=? limit 1"
-	fmt.Println(s)
-	err = tx.QueryRow(s, fn).Scan(&oldt)
+	err := ftt.db.Get(fn, &oldt)
 	fmt.Println(oldt)
-	var stmt *sql.Stmt
 	switch {
-	case err == sql.ErrNoRows:
+	case err == rkv.ErrKeyNotFound:
 		fmt.Println("insert")
-		stmt, err = tx.Prepare("INSERT into file_time_data(t, name) values(?, ?)")
+		err = ftt.db.Put(fn, t)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -185,36 +164,28 @@ func (ftt *FileTimeTable) IsBefore(fn string, t time.Time) (r bool) {
 		log.Fatal(err)
 	default:
 		r = oldt.Before(t)
-		fmt.Println("maybe upload")
+		fmt.Println("maybe update")
 		if r {
-			fmt.Println("upload")
-			stmt, err = tx.Prepare("UPDATE file_time_data set t=? where name=?")
+			fmt.Println("update")
+			err = ftt.db.Put(fn, t)
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
 	}
-	if stmt != nil {
-		defer stmt.Close()
-		_, err = stmt.Exec(t, fn)
-		handle_error(err)
-		fmt.Println("Commit")
-		tx.Commit()
-	} else {
-		tx.Rollback()
-	}
 	return r
 }
 func (ftt *FileTimeTable) ShowAll() {
-	s := "SELECT t,name from file_time_data"
-	rows, err := ftt.db.Query(s)
-	handle_error(err)
-	defer rows.Close()
-	for rows.Next() {
-		var t time.Time
-		var name string
-		rows.Scan(&t, &name)
-		fmt.Println(t, name)
+	// get all keys from database - only do this on very small databases!
+	arr := ftt.db.GetKeys("", -1)
+
+	for _, key := range arr {
+		var v time.Time
+		err := ftt.db.Get(key, &v)
+		if err != nil {
+			log.Fatal("Error while iterating %q", err.Error())
+		}
+		fmt.Printf("%s => %v\n", key, v)
 	}
 }
 func (ftt *FileTimeTable) Close() {
