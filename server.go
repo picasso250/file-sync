@@ -10,8 +10,8 @@ import "fmt"
 import "net"
 import "log"
 import "bufio"
+// import "hyperjson"
 import "io/ioutil"
-import "encoding/json"
 
 func main() {
 	if len(os.Args) <= 1 {
@@ -36,7 +36,7 @@ type Response struct {
 func handleConnection(conn net.Conn) {
 	for {
 		rd := bufio.NewReader(conn)
-		hjrd := NewHyperJsonReader(rd)
+		hjrd := NewReader(rd)
 		header := hjrd.ReadHeader()
 		fp, ok := header["fp"] // file path
 		if !ok {
@@ -53,15 +53,16 @@ func handleConnection(conn net.Conn) {
 		}
 		wt := bufio.NewWriter(conn)
 		w := NewWriter(wt)
-		res := Response {
-			code: 0,
+		res := map[string]interface{} {
+			"code": 0,
 		}
-		w.WriteResponse(res)
+		w.WriteHeader(res)
 		cc, ok := header["cc"] // connection close
 		if ok && cc.(bool) == true {
 			break;
 		}
 	}
+	conn.Close()
 }
 func handle_error(err error) {
 	if err != nil {

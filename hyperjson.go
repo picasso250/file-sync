@@ -1,9 +1,13 @@
+package main
+
+import "bufio"
+import "encoding/json"
 
 type Reader struct {
 	rd *bufio.Reader
 }
 
-func NewHyperJsonReader(rd *bufio.Reader) *Reader {
+func NewReader(rd *bufio.Reader) *Reader {
 	r := new(Reader)
 	r.reset(rd)
 	return r
@@ -26,31 +30,35 @@ func (b *Reader) ReadBody(n int) (bf []byte) {
 	return bf
 }
 func (b *Reader) reset(rd *bufio.Reader) {
-	*b = Reader {
+	*b = Reader{
 		rd: rd,
 	}
 }
 
+type Writer struct {
+	wt *bufio.Writer
+}
+
 func NewWriter(wt *bufio.Writer) *Writer {
-	w := Writer {
-		wt: wt
+	w := new(Writer)
+	*w = Writer{
+		wt: wt,
 	}
 	return w
 }
-func (wt *bufio.Writer) WriteHeader(header map[string]interface{}) {
+func (wt *Writer) WriteHeader(header map[string]interface{}) {
 	b, err := json.Marshal(header)
 	handle_error(err)
-	_, err := wt.write(b)
+	_, err = wt.wt.Write(b)
 	handle_error(err)
-	err := wt.writeByte('\n')
+	err = wt.wt.WriteByte('\n')
 	handle_error(err)
-	err := wt.Flush()
+	err = wt.wt.Flush()
 	handle_error(err)
 }
-func (wt *bufio.Writer) WriteBody(b []byte) {
+func (wt *Writer) WriteBody(b []byte) {
+	_, err := wt.wt.Write(b)
 	handle_error(err)
-	_, err := wt.write(b)
-	handle_error(err)
-	err := wt.Flush()
+	err = wt.wt.Flush()
 	handle_error(err)
 }
